@@ -33,13 +33,19 @@ async def main() -> None:
         return
 
     bot = Bot(
-        token=settings.telegram_bot_token,
+        token=settings.telegram_token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher()
     dp.include_router(router)
 
-    logger.info("Мозок: %s | Бот стартує…", settings.brain)
+    hermes_mode = (
+        f"SSH→{settings.hermes_ssh}" if settings.hermes_ssh else "локально"
+    )
+    logger.info(
+        "Travel Planner | мозок=%s (%s, '%s %s') | Бот стартує…",
+        settings.brain, hermes_mode, settings.hermes_bin, settings.hermes_flag,
+    )
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 

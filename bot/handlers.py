@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 import logging
+from contextlib import suppress
 
 from aiogram import F, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
@@ -141,15 +143,19 @@ async def toggle_interest(call: CallbackQuery, state: FSMContext) -> None:
         selected.add(value)
 
     await state.update_data(interests=list(selected))
-    await call.message.edit_reply_markup(
-        reply_markup=interests_keyboard(selected)
-    )
+    # Якщо швидко тиснути ту саму кнопку, Telegram може повернути
+    # "message is not modified" — це не помилка, просто ігноруємо.
+    with suppress(TelegramBadRequest):
+        await call.message.edit_reply_markup(
+            reply_markup=interests_keyboard(selected)
+        )
     await call.answer()
 
 
 @router.callback_query(Planning.interests, F.data == CB_INTEREST_DONE)
 async def interests_done(call: CallbackQuery, state: FSMContext) -> None:
-    await call.message.edit_reply_markup(reply_markup=None)
+    with suppress(TelegramBadRequest):
+        await call.message.edit_reply_markup(reply_markup=None)
     await call.message.answer(
         "І останнє — <b>який бюджет</b>?",
         reply_markup=budget_keyboard(),
@@ -165,7 +171,8 @@ async def interests_done(call: CallbackQuery, state: FSMContext) -> None:
 async def got_budget(call: CallbackQuery, state: FSMContext) -> None:
     budget_value = call.data.removeprefix(CB_BUDGET)
     data = await state.get_data()
-    await call.message.edit_reply_markup(reply_markup=None)
+    with suppress(TelegramBadRequest):
+        await call.message.edit_reply_markup(reply_markup=None)
     await call.answer()
 
     request = TripRequest(

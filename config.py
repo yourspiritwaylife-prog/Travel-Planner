@@ -1,8 +1,9 @@
 """
-Налаштування проєкту.
+Налаштування Travel Planner бота.
 
-Усе читається з файлу .env (див. .env.example).
-Нічого хардкодити не треба — тільки заповнити .env.
+Усе читається з .env (див. .env.example). Travel Planner — окремий бот зі
+СВОЇМ токеном, який використовує існуючий Hermes Agent (через CLI) як «мозок».
+Він НЕ чіпає інший (AI-News) бот і його конфігурацію.
 """
 from __future__ import annotations
 
@@ -17,32 +18,45 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # --- Telegram ---
-    telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
+    # --- Telegram: ОКРЕМИЙ токен саме для Travel Planner ---
+    travel_telegram_bot_token: str = Field(
+        default="", alias="TRAVEL_TELEGRAM_BOT_TOKEN"
+    )
+    # Сумісність зі старим іменем (якщо лишилось у .env) — необовʼязково.
+    legacy_telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
 
-    # --- Який "мозок": "gemini" | "hermes" ---
-    brain: str = Field(default="gemini", alias="BRAIN")
+    # --- Який «мозок»: "hermes" (основний) | "mock" (офлайн-демо карток) ---
+    brain: str = Field(default="hermes", alias="BRAIN")
 
-    # --- Gemini ---
-    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
+    # --- Hermes Agent (викликається через встановлений CLI) ---
+    hermes_bin: str = Field(default="hermes", alias="HERMES_BIN")
+    hermes_flag: str = Field(default="-z", alias="HERMES_FLAG")
+    hermes_timeout: int = Field(default=180, alias="HERMES_TIMEOUT")
+    # Тільки для запуску з ІНШОЇ машини (розробка): викликати hermes через SSH,
+    # напр. "root@144.126.206.226". Порожнє = бот працює на тому ж сервері,
+    # що й Hermes, і кличе його напряму. (Це CLI, а не HTTP — без URL/ключів.)
+    hermes_ssh: str = Field(default="", alias="HERMES_SSH")
+    # Шлях до приватного SSH-ключа для passwordless-доступу (тільки SSH-режим).
+    hermes_ssh_key: str = Field(default="", alias="HERMES_SSH_KEY")
 
-    # --- Hermes (DigitalOcean) ---
-    hermes_url: str = Field(default="", alias="HERMES_URL")
-    hermes_api_key: str = Field(default="", alias="HERMES_API_KEY")
-
-    # --- Безкоштовні джерела даних ---
+    # --- Безкоштовні джерела даних (ключі НЕ потрібні) ---
     osm_contact_email: str = Field(default="", alias="OSM_CONTACT_EMAIL")
 
+    @property
+    def telegram_token(self) -> str:
+        """Токен Travel Planner бота (з фолбеком на старе імʼя)."""
+        return self.travel_telegram_bot_token or self.legacy_telegram_bot_token
+
     def validate_ready(self) -> list[str]:
-        """Повертає список проблем, якщо чогось бракує для запуску."""
+        """Список проблем, якщо чогось бракує для запуску."""
         problems: list[str] = []
-        if not self.telegram_bot_token:
-            problems.append("Немає TELEGRAM_BOT_TOKEN (отримай у @BotFather)")
-        if self.brain == "gemini" and not self.gemini_api_key:
-            problems.append("BRAIN=gemini, але немає GEMINI_API_KEY")
-        if self.brain == "hermes" and not self.hermes_url:
-            problems.append("BRAIN=hermes, але немає HERMES_URL")
+        if not self.telegram_token:
+            problems.append(
+                "Немає TRAVEL_TELEGRAM_BOT_TOKEN — окремий токен Travel Planner бота "
+                "(отримай у @BotFather для НОВОГО бота, не плутай з AI-News)."
+            )
+        if self.brain == "hermes" and not self.hermes_bin:
+            problems.append("BRAIN=hermes, але не задано HERMES_BIN")
         return problems
 
 
