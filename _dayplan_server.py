@@ -134,11 +134,20 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .more .addr{color:#9a93a8;font-size:13px;margin-top:12px}
 .more .site{margin-top:12px;font-size:14px}
 .more .site a{color:#7c5cff;font-weight:700;text-decoration:none}
+.more .bk{margin-top:12px;background:#f3f0ff;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5}
+.more .bk a{color:#7c5cff;font-weight:700;text-decoration:none}
+.more .ahead{margin-top:9px;color:#e0683f;font-weight:700;font-size:14px}
 .dur{font-size:11px;color:#9a93a8;margin-left:8px;font-weight:600}
-.info{margin:13px 15px 0;background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 5px 14px rgba(80,60,160,.10)}
-.info h3{font-size:14px;font-weight:800;color:#7c5cff;margin-bottom:7px}
+.info{margin:13px 15px 0;background:#fff;border-radius:16px;box-shadow:0 5px 14px rgba(80,60,160,.10);overflow:hidden}
+.info>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:14px 15px}
+.info>summary::-webkit-details-marker{display:none}
+.info h3{font-size:14px;font-weight:800;color:#7c5cff}
 .info.cult h3{color:#e0683f}
-.info .li{font-size:14px;line-height:1.5;color:#3a3f4b;padding-left:18px;position:relative;margin-top:4px}
+.info.tips h3{color:#2aa775}
+.info .arr{color:#c3bdd4;font-size:13px;font-weight:700;margin-left:10px}
+.info[open] .arr{color:#7c5cff}
+.info .ibody{padding:0 15px 14px}
+.info .li{font-size:14px;line-height:1.5;color:#3a3f4b;padding-left:18px;position:relative;margin-top:6px}
 .info .li::before{content:"•";position:absolute;left:4px;color:#fc5c8d;font-weight:700}
 .trip{margin:13px 15px 0;background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 5px 14px rgba(80,60,160,.10)}
 .trip h3{font-size:14px;font-weight:800;color:#4bb6d8;margin-bottom:9px}
@@ -165,6 +174,16 @@ def stop_block(s):
         rows += f'<div class="r">✨ <b>Чому варто:</b> {esc(s["why"])}</div>'
     if s.get("travel"):
         rows += f'<div class="r">🚕 <b>Як дістатись:</b> {esc(s["travel"])}</div>'
+    if s.get("booking"):
+        b = s["booking"]
+        lbl = esc(b.get("label") or "Тур / квиток")
+        link = (f' <a href="{esc(b["link"])}" target="_blank" rel="noopener">'
+                f'забронювати →</a>') if b.get("link") else ""
+        note = f'<br>{esc(b["note"])}' if b.get("note") else ""
+        rows += f'<div class="r bk">🎟 <b>{lbl}:</b>{link}{note}</div>'
+    if s.get("book_ahead"):
+        rows += ('<div class="r ahead">⏳ Бронюй заздалегідь — місця/квитки '
+                 'часто розкуповують наперед</div>')
     if s.get("website"):
         rows += (f'<div class="r site">🔗 <a href="{esc(s["website"])}" '
                  f'target="_blank" rel="noopener">Офіційний сайт</a></div>')
@@ -182,7 +201,8 @@ def stop_block(s):
 
 
 def info_box(title, items, cls=""):
-    """Блок-список (напр. транспорт / культура). items — рядок або список рядків."""
+    """Згортний блок-список (транспорт / культура / поради): тап -> розгортається.
+    items — рядок або список рядків."""
     if not items:
         return ""
     if isinstance(items, str):
@@ -190,7 +210,9 @@ def info_box(title, items, cls=""):
     lis = "".join(f'<div class="li">{esc(it)}</div>' for it in items if it)
     if not lis:
         return ""
-    return f'<div class="info {cls}"><h3>{esc(title)}</h3>{lis}</div>'
+    return (f'<details class="info {cls}"><summary><h3>{esc(title)}</h3>'
+            f'<span class="arr">натисни ↓</span></summary>'
+            f'<div class="ibody">{lis}</div></details>')
 
 
 def daytrips_box(trips):
@@ -220,6 +242,7 @@ def build_html(day):
     blocks = "\n".join(stop_block(s) for s in stops)
     around = info_box("🚕 Пересування сьогодні", day.get("getting_around"))
     culture = info_box("🛕 Культура й традиції", day.get("culture"), "cult")
+    tips = info_box("💡 Корисно знати", day.get("tips"), "tips")
     trips = daytrips_box(day.get("daytrips"))
     foot = esc(day.get("foot", "")) or "Гарної подорожі! 🎒"
     return f"""<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8">
@@ -228,7 +251,7 @@ def build_html(day):
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
 <div class="sum">{esc(day.get('summary',''))}</div></div>
-{around}{culture}
+{around}{culture}{tips}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
