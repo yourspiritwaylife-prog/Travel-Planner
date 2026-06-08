@@ -136,7 +136,10 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .more .site a{color:#7c5cff;font-weight:700;text-decoration:none}
 .more .bk{margin-top:12px;background:#f3f0ff;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5}
 .more .bk a{color:#7c5cff;font-weight:700;text-decoration:none}
-.more .ahead{margin-top:9px;color:#e0683f;font-weight:700;font-size:14px}
+.more .ahead{margin-top:9px;color:#d12b2b;font-weight:800;font-size:14px;background:#ffe8e8;border-radius:9px;padding:8px 11px}
+.alert{margin:13px 15px 0;background:#ffe8e8;color:#d12b2b;border:1.6px solid #ff9b9b;border-radius:13px;padding:12px 14px;font-weight:800;font-size:14px;line-height:1.4;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.badge-book{display:inline-block;background:#ffe1e1;color:#d12b2b;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;margin-left:6px;border:1px solid #ffb3b3;vertical-align:middle}
 .dur{font-size:11px;color:#9a93a8;margin-left:8px;font-weight:600}
 .info{margin:13px 15px 0;background:#fff;border-radius:16px;box-shadow:0 5px 14px rgba(80,60,160,.10);overflow:hidden}
 .info>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:14px 15px}
@@ -192,9 +195,10 @@ def stop_block(s):
     # час доби + (опц.) точний час старту та тривалість
     when = f'{esc(s["start"])} · {esc(s["time"])}' if s.get("start") else esc(s["time"])
     dur = f'<span class="dur">⏱ {esc(s["duration"])}</span>' if s.get("duration") else ""
+    badge = '<span class="badge-book">🎟 заздалегідь</span>' if s.get("book_ahead") else ""
     img = s.get("photo") or ""
     return (f'<details class="stop"><summary><img class="th" src="{img}">'
-            f'<div class="in"><span class="when">{when}</span>{dur}'
+            f'<div class="in"><span class="when">{when}</span>{dur}{badge}'
             f'<div class="nm">{esc(s["name"])}</div><div class="mt">{star}{price}</div>'
             f'<div class="tap">↓ натисни для деталей</div></div></summary>'
             f'<div class="more">{rows}</div></details>')
@@ -240,6 +244,9 @@ def build_html(day):
                 s[k] = v
         s["photo"] = photo_data(g.get("purl"))
     blocks = "\n".join(stop_block(s) for s in stops)
+    needs_book = any(s.get("book_ahead") for s in stops)
+    alert = ('<div class="alert">⚠️ У ЦЕЙ ДЕНЬ є що бронювати ЗАЗДАЛЕГІДЬ — '
+             'шукай позначки 🎟 нижче</div>') if needs_book else ""
     around = info_box("🚕 Пересування сьогодні", day.get("getting_around"))
     culture = info_box("🛕 Культура й традиції", day.get("culture"), "cult")
     tips = info_box("💡 Корисно знати", day.get("tips"), "tips")
@@ -251,19 +258,21 @@ def build_html(day):
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
 <div class="sum">{esc(day.get('summary',''))}</div></div>
-{around}{culture}{tips}
+{alert}{around}{culture}{tips}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
 
 
-def send(path, chat, caption):
+def send(path, chat, caption, filename=""):
     token = ENV.get("TELEGRAM_BOT_TOKEN")
     chat = chat or ENV.get("TELEGRAM_HOME_CHANNEL")
     if not (token and chat):
         return "NO_TOKEN_OR_CHAT"
-    cmd = ["curl", "-sS", "-F", f"chat_id={chat}",
-           "-F", f"document=@{path};type=text/html"]
+    doc = f"document=@{path};type=text/html"
+    if filename:
+        doc += f";filename={filename}"
+    cmd = ["curl", "-sS", "-F", f"chat_id={chat}", "-F", doc]
     if caption:
         cmd += ["-F", f"caption={caption}"]
     cmd.append(f"https://api.telegram.org/bot{token}/sendDocument")
@@ -288,8 +297,12 @@ def main():
     out = f"/tmp/plan_{safe}_{os.getpid()}.html"
     with open(out, "w", encoding="utf-8") as f:
         f.write(page)
+    # Зрозуміла назва документа в Telegram (а не цифри): «План — Убуд, День 1 з 7.html»
+    label = (day.get("day_label") or "").replace(" / ", " з ").replace("/", "-")
+    pretty = f"План — {day.get('city', 'подорож')}" + (f", {label}" if label else "")
+    pretty = pretty.replace(";", " ").strip() + ".html"
     print("BUILT:", out, f"({os.path.getsize(out)//1024} KB)")
-    print(send(out, args.chat, args.caption))
+    print(send(out, args.chat, args.caption, pretty))
     if not args.keep:
         try:
             os.remove(out)
