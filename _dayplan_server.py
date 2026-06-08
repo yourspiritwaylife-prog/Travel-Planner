@@ -138,6 +138,8 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .more .bk a{color:#7c5cff;font-weight:700;text-decoration:none}
 .more .alt{margin-top:12px;background:#eef6ff;border-radius:10px;padding:9px 12px;font-size:14px;line-height:1.5;color:#2a6da7}
 .more .alt b{color:#2a6da7}
+.more .entry{margin-top:11px}
+.entrychip{display:inline-block;background:#eef7f0;color:#2a7d4f;font-weight:700;font-size:13px;padding:5px 11px;border-radius:9px}
 .more .ahead{margin-top:9px;color:#d12b2b;font-weight:800;font-size:14px;background:#ffe8e8;border-radius:9px;padding:8px 11px}
 .alert{margin:13px 15px 0;background:#ffe8e8;color:#d12b2b;border:1.6px solid #ff9b9b;border-radius:13px;padding:12px 14px;font-weight:800;font-size:14px;line-height:1.4;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
@@ -177,6 +179,8 @@ def stop_block(s):
         rows += f'<div class="r">🍽 <b>Що замовити:</b></div><span class="chip">{esc(s["dish"])}</span>'
     if s.get("why"):
         rows += f'<div class="r">✨ <b>Чому варто:</b> {esc(s["why"])}</div>'
+    if s.get("entry"):
+        rows += f'<div class="r entry"><span class="entrychip">{esc(s["entry"])}</span></div>'
     if s.get("alt"):
         rows += f'<div class="r alt">🏨 <b>Альтернатива:</b> {esc(s["alt"])}</div>'
     if s.get("travel"):
@@ -297,21 +301,21 @@ def main():
     with open(args.data, encoding="utf-8") as fh:
         day = json.load(fh)
     page = build_html(day)
-    safe = "".join(c if c.isalnum() else "_" for c in day.get("city", "trip"))[:20]
-    out = f"/tmp/plan_{safe}_{os.getpid()}.html"
-    with open(out, "w", encoding="utf-8") as fh:
-        fh.write(page)
-    # Зрозуміла назва документа в Telegram: «План — Убуд, День 1 з 7 (12 червня).html»
+    # Назву даємо САМОМУ ФАЙЛУ — її Telegram і показує (надійніше за curl
+    # ;filename=, який Telegram інколи ігнорує). Напр.: «Убуд — День 1 з 7, 12 червня.html»
     label = (day.get("day_label") or "").replace(" / ", " з ").replace("/", "-")
     date = (day.get("date") or "").strip()
-    pretty = f"План — {day.get('city', 'подорож')}"
+    name = day.get("city", "Подорож")
     if label:
-        pretty += f", {label}"
+        name += f" — {label}"
     if date:
-        pretty += f" ({date})"
-    pretty = pretty.replace(";", " ").strip() + ".html"
+        name += f", {date}"
+    name = "".join(c for c in name if c not in '/\\:*?"<>|;\n\r\t').strip() or "План"
+    out = f"/tmp/{name}.html"
+    with open(out, "w", encoding="utf-8") as fh:
+        fh.write(page)
     print("BUILT:", out, f"({os.path.getsize(out)//1024} KB)")
-    print(send(out, args.chat, args.caption, pretty))
+    print(send(out, args.chat, args.caption))
     if not args.keep:
         # Прибираємо і згенерований HTML, і ВХІДНИЙ JSON дня — щоб старі дні
         # не лишались у /tmp і не надсилались повторно (захист від дублів).
