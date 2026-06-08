@@ -299,20 +299,28 @@ def main():
     page = build_html(day)
     safe = "".join(c if c.isalnum() else "_" for c in day.get("city", "trip"))[:20]
     out = f"/tmp/plan_{safe}_{os.getpid()}.html"
-    with open(out, "w", encoding="utf-8") as f:
-        f.write(page)
-    # Зрозуміла назва документа в Telegram (а не цифри): «План — Убуд, День 1 з 7.html»
+    with open(out, "w", encoding="utf-8") as fh:
+        fh.write(page)
+    # Зрозуміла назва документа в Telegram: «План — Убуд, День 1 з 7 (12 червня).html»
     label = (day.get("day_label") or "").replace(" / ", " з ").replace("/", "-")
-    pretty = f"План — {day.get('city', 'подорож')}" + (f", {label}" if label else "")
+    date = (day.get("date") or "").strip()
+    pretty = f"План — {day.get('city', 'подорож')}"
+    if label:
+        pretty += f", {label}"
+    if date:
+        pretty += f" ({date})"
     pretty = pretty.replace(";", " ").strip() + ".html"
     print("BUILT:", out, f"({os.path.getsize(out)//1024} KB)")
     print(send(out, args.chat, args.caption, pretty))
     if not args.keep:
-        try:
-            os.remove(out)
-            print("CLEANED: temp file deleted")
-        except OSError:
-            pass
+        # Прибираємо і згенерований HTML, і ВХІДНИЙ JSON дня — щоб старі дні
+        # не лишались у /tmp і не надсилались повторно (захист від дублів).
+        for path in (out, args.data):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+        print("CLEANED: temp html + input json deleted")
 
 
 if __name__ == "__main__":
