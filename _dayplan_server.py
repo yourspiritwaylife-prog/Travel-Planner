@@ -136,6 +136,8 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .more .site a{color:#7c5cff;font-weight:700;text-decoration:none}
 .more .bk{margin-top:12px;background:#f3f0ff;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5}
 .more .bk a{color:#7c5cff;font-weight:700;text-decoration:none}
+.more .alt{margin-top:12px;background:#eef6ff;border-radius:10px;padding:9px 12px;font-size:14px;line-height:1.5;color:#2a6da7}
+.more .alt b{color:#2a6da7}
 .more .ahead{margin-top:9px;color:#d12b2b;font-weight:800;font-size:14px;background:#ffe8e8;border-radius:9px;padding:8px 11px}
 .alert{margin:13px 15px 0;background:#ffe8e8;color:#d12b2b;border:1.6px solid #ff9b9b;border-radius:13px;padding:12px 14px;font-weight:800;font-size:14px;line-height:1.4;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
@@ -175,6 +177,8 @@ def stop_block(s):
         rows += f'<div class="r">🍽 <b>Що замовити:</b></div><span class="chip">{esc(s["dish"])}</span>'
     if s.get("why"):
         rows += f'<div class="r">✨ <b>Чому варто:</b> {esc(s["why"])}</div>'
+    if s.get("alt"):
+        rows += f'<div class="r alt">🏨 <b>Альтернатива:</b> {esc(s["alt"])}</div>'
     if s.get("travel"):
         rows += f'<div class="r">🚕 <b>Як дістатись:</b> {esc(s["travel"])}</div>'
     if s.get("booking"):
