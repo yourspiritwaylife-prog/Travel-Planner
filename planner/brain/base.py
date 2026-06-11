@@ -97,15 +97,18 @@ def _parse_plan(request: TripRequest, data: dict) -> TripPlan:
         city=request.city,
         intro=str(data.get("intro", "")).strip(),
         days=days,
+        language=request.language,
     )
 
 
 def _safe_enum(enum_cls, value, default):
-    """Безпечно перетворити рядок у Enum (LLM може дати укр/англ варіант)."""
+    """Безпечно перетворити рядок у Enum.
+
+    Очікуємо англійський код (так просить промпт), але на випадок, якщо мозок
+    поверне категорію локалізованим словом, додатково шукаємо за мітками i18n.
+    """
     if value is None:
         return default
-    value_str = str(value).strip().lower()
-    for member in enum_cls:
-        if value_str in (member.value.lower(), member.name.lower()):
-            return member
-    return default
+    from planner.i18n import match_enum
+
+    return match_enum(enum_cls, value) or default

@@ -1,61 +1,92 @@
 """
 Промпт для мозку: просимо повернути СТРОГО JSON у потрібній формі.
 Тримаємо окремо, щоб легко покращувати текст без зміни логіки.
+
+Ключова ідея багатомовності: ЛЮДСЬКИЙ текст (intro, title, summary, name,
+note, підказки) — мовою користувача; а МАШИННІ коди (kind, time_of_day) —
+завжди фіксовані англійські ключі. Так план будь-якою мовою лишається
+розбірним для коду й коректно малюється на картках.
 """
 from __future__ import annotations
 
-from planner.models import TripRequest
+from planner.i18n import (
+    budget_label,
+    english_language_name,
+    interest_label,
+)
+from planner.models import PlaceKind, TimeOfDay, TripRequest
+
+# Допустимі англійські коди для машинних полів (із Enum-ів).
+_KIND_CODES = " | ".join(k.value for k in PlaceKind)
+_TIME_CODES = " | ".join(t.value for t in TimeOfDay)
 
 # Описуємо очікувану структуру простими словами для будь-якого LLM.
-_JSON_SHAPE = """
-{
-  "intro": "1-2 теплих речення про подорож",
+_JSON_SHAPE = f"""
+{{
+  "intro": "1-2 warm sentences about the trip (in the user's language)",
   "days": [
-    {
+    {{
       "day_number": 1,
-      "title": "коротка тема дня, напр. 'Старе місто'",
-      "summary": "1 речення — суть дня",
-      "transport_hint": "як зручно пересуватись цього дня",
+      "title": "short day theme, e.g. 'Old Town' (user's language)",
+      "summary": "1 sentence — the essence of the day (user's language)",
+      "transport_hint": "how to get around that day (user's language)",
       "places": [
-        {
-          "name": "точна назва місця",
-          "kind": "пам'ятка | музей | ресторан | кафе | парк | оглядовий майданчик | інше",
-          "time_of_day": "сніданок | ранок | обід | день | вечір | вечеря",
-          "note": "1 речення: чому варто / що там цікавого",
-          "travel_hint": "як дістатись від попередньої точки (пішки/метро/час)"
-        }
+        {{
+          "name": "exact real place name (keep original/local spelling)",
+          "kind": "ONE English code: {_KIND_CODES}",
+          "time_of_day": "ONE English code: {_TIME_CODES}",
+          "note": "1 sentence: why it's worth it (user's language)",
+          "travel_hint": "how to get here from the previous point (user's language)"
+        }}
       ]
-    }
+    }}
   ]
-}
+}}
 """
 
 
 def build_planning_prompt(req: TripRequest) -> str:
-    interests = ", ".join(i.value for i in req.interests) or "загальні визначні місця"
+    lang = req.language or "uk"
+    language_name = english_language_name(lang)
+    interests = (
+        ", ".join(interest_label(i, lang) for i in req.interests)
+        or "general highlights"
+    )
+    budget = budget_label(req.budget, lang)
 
-    return f"""Ти — досвідчений тревел-гід. Склади детальний план подорожі.
+    return f"""You are an experienced travel guide. Build a detailed trip plan.
 
-ВХІДНІ ДАНІ:
-- Місто/напрямок: {req.city}
-- Кількість днів: {req.days}
-- Інтереси мандрівника: {interests}
-- Бюджет: {req.budget.value}
-- Мова відповіді: українська
+INPUT:
+- City/destination: {req.city}
+- Number of days: {req.days}
+- Traveller interests: {interests}
+- Budget: {budget}
+- RESPONSE LANGUAGE: {language_name}
 
-ВИМОГИ ДО ПЛАНУ:
-1. Рівно {req.days} днів. Кожен день — логічний маршрут по сусідніх локаціях
-   (щоб не їздити туди-сюди через все місто).
-2. Кожен день ПОЧИНАЙ зі сніданку (time_of_day="сніданок", кафе чи пекарня),
-   а далі 4-6 точок, обовʼязково з обідом і вечерею (реальні заклади).
-3. Враховуй інтереси ({interests}) і бюджет ({req.budget.value}).
-4. Для кожної точки вкажи реальну назву, час доби і коротку причину відвідати.
-5. У полі "name" пиши ЛИШЕ чисту назву місця без пояснень у дужках
-   (правильно: "Львівська ратуша"; НЕ "Львівська ратуша (оглядовий майданчик)").
-6. Додай підказку по транспорту між точками.
+LANGUAGE RULES (important):
+- Write ALL human-readable text (intro, title, summary, note, transport_hint,
+  travel_hint) in {language_name}.
+- Keep real place names in their original/local spelling inside "name".
+- The fields "kind" and "time_of_day" MUST be one of the fixed ENGLISH codes
+  listed below — never translate these two fields.
 
-ФОРМАТ ВІДПОВІДІ — ТІЛЬКИ валідний JSON (без пояснень, без markdown),
-точно такої структури:
+PLAN REQUIREMENTS:
+1. Exactly {req.days} day(s). Each day is a logical route across nearby spots
+   (avoid criss-crossing the whole city).
+2. Start EACH day with breakfast (time_of_day="breakfast", a café or bakery),
+   then 4-6 stops, always including lunch and dinner (real venues).
+3. Respect the interests ({interests}) and the budget ({budget}).
+4. For every stop give a real name, the time of day and a short reason to go.
+5. In "name" write ONLY the clean place name without parenthetical notes
+   (right: "Town Hall"; wrong: "Town Hall (viewpoint)").
+6. Add a transport hint between points.
+
+ALLOWED CODES:
+- kind: {_KIND_CODES}
+- time_of_day: {_TIME_CODES}
+
+RESPONSE FORMAT — ONLY valid JSON (no explanations, no markdown),
+exactly this structure:
 {_JSON_SHAPE}
 
-Поверни лише JSON-обʼєкт."""
+Return only the JSON object."""

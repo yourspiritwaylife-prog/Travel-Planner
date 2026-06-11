@@ -12,20 +12,24 @@ from pydantic import BaseModel, Field
 
 
 class Interest(str, Enum):
-    """Що користувачу цікаво в подорожі."""
+    """Що користувачу цікаво в подорожі.
 
-    CULTURE = "культура"      # музеї, історія, архітектура
-    FOOD = "їжа"              # ресторани, локальна кухня
-    NATURE = "природа"        # парки, краєвиди, набережні
-    NIGHTLIFE = "розваги"     # бари, нічне життя
-    SHOPPING = "шопінг"
-    RELAX = "відпочинок"      # спокійний темп, спа
+    Значення — СТАБІЛЬНІ англійські коди (не залежать від мови інтерфейсу).
+    Людські назви цих кодів кожною мовою — у planner/i18n.py.
+    """
+
+    CULTURE = "culture"        # музеї, історія, архітектура
+    FOOD = "food"              # ресторани, локальна кухня
+    NATURE = "nature"          # парки, краєвиди, набережні
+    NIGHTLIFE = "nightlife"    # бари, нічне життя
+    SHOPPING = "shopping"
+    RELAX = "relax"            # спокійний темп, спа
 
 
 class Budget(str, Enum):
-    LOW = "економний"
-    MEDIUM = "середній"
-    HIGH = "преміум"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
 
 
 class TripRequest(BaseModel):
@@ -35,27 +39,28 @@ class TripRequest(BaseModel):
     days: int = Field(ge=1, le=30)
     interests: list[Interest] = Field(default_factory=list)
     budget: Budget = Budget.MEDIUM
-    # на майбутнє: мова відповіді
+    # мова, якою спілкується користувач (план і картки будуть нею ж).
+    # Код мови (uk, en, es, …). Будь-яка мова — план генерує LLM.
     language: str = "uk"
 
 
 class TimeOfDay(str, Enum):
-    BREAKFAST = "сніданок"
-    MORNING = "ранок"
-    LUNCH = "обід"
-    NOON = "день"
-    EVENING = "вечір"
-    DINNER = "вечеря"
+    BREAKFAST = "breakfast"
+    MORNING = "morning"
+    LUNCH = "lunch"
+    NOON = "noon"
+    EVENING = "evening"
+    DINNER = "dinner"
 
 
 class PlaceKind(str, Enum):
-    ATTRACTION = "пам'ятка"
-    MUSEUM = "музей"
-    RESTAURANT = "ресторан"
-    CAFE = "кафе"
-    PARK = "парк"
-    VIEWPOINT = "оглядовий майданчик"
-    OTHER = "інше"
+    ATTRACTION = "attraction"
+    MUSEUM = "museum"
+    RESTAURANT = "restaurant"
+    CAFE = "cafe"
+    PARK = "park"
+    VIEWPOINT = "viewpoint"
+    OTHER = "other"
 
 
 class Place(BaseModel):
@@ -95,3 +100,4 @@ class TripPlan(BaseModel):
     city: str
     days: list[DayPlan] = Field(default_factory=list)
     intro: str = ""               # привітальний абзац
+    language: str = "uk"          # мова плану (для локалізації карток)

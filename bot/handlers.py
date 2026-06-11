@@ -2,6 +2,8 @@
 Обробники діалогу Telegram-бота.
 
 Сценарій: /start -> місто -> дні -> інтереси -> бюджет -> готові картки.
+Мова: визначається автоматично (збережений вибір → локаль Telegram → текст),
+змінюється будь-коли командою /language. План і картки — мовою користувача.
 """
 from __future__ import annotations
 
@@ -12,18 +14,22 @@ from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile, Message
+from aiogram.types import CallbackQuery, FSInputFile, Message, User
 from aiogram.utils.chat_action import ChatActionSender
 
+from bot import userprefs
 from bot.keyboards import (
     CB_BUDGET,
     CB_INTEREST,
     CB_INTEREST_DONE,
+    CB_LANG,
     budget_keyboard,
     interests_keyboard,
+    language_keyboard,
 )
 from bot.states import Planning
 from planner.enrich import geocode_query
+from planner.i18n import detect_language, t
 from planner.models import Budget, Interest, TripRequest
 from planner.pipeline import run_pipeline
 
@@ -32,25 +38,59 @@ router = Router()
 
 
 # --------------------------------------------------------------------------- #
+#  Мова користувача (одне джерело правди для всіх обробників)
+# --------------------------------------------------------------------------- #
+async def get_lang(state: FSMContext, user: User | None) -> str:
+    """Мова з памʼяті діалогу; якщо ще нема — визначаємо й запамʼятовуємо."""
+    data = await state.get_data()
+    lang = data.get("lang")
+    if not lang:
+        tg_lang = user.language_code if user else None
+        lang = userprefs.resolve_lang(user.id if user else 0, tg_lang)
+        await state.update_data(lang=lang)
+    return lang
+
+
+# --------------------------------------------------------------------------- #
 #  /start  і  /help
 # --------------------------------------------------------------------------- #
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext) -> None:
     await state.clear()
-    await message.answer(
-        "✈️ <b>Привіт! Я твій тревел-планер.</b>\n\n"
-        "Складу тобі детальний план подорожі по днях — з місцями, "
-        "ресторанами, маршрутами і гарними картками.\n\n"
-        "Почнемо! <b>Куди плануєш поїхати?</b>\n"
-        "<i>Напиши місто, напр.: Прага, Барселона, Рим…</i>"
+    # збережений вибір переживає clear() (лежить у userprefs), локаль — запасна
+    lang = userprefs.resolve_lang(
+        message.from_user.id, message.from_user.language_code
     )
+    await state.update_data(lang=lang)
+    await message.answer(t("start", lang))
     await state.set_state(Planning.city)
 
 
 @router.message(Command("cancel"))
 async def cmd_cancel(message: Message, state: FSMContext) -> None:
+    lang = await get_lang(state, message.from_user)
     await state.clear()
-    await message.answer("Скасовано. Напиши /start, щоб почати спочатку.")
+    await message.answer(t("cancel", lang))
+
+
+# --------------------------------------------------------------------------- #
+#  /language — змінити мову будь-коли (працює у будь-якому стані)
+# --------------------------------------------------------------------------- #
+@router.message(Command("language"))
+async def cmd_language(message: Message, state: FSMContext) -> None:
+    lang = await get_lang(state, message.from_user)
+    await message.answer(t("choose_language", lang), reply_markup=language_keyboard())
+
+
+@router.callback_query(F.data.startswith(CB_LANG))
+async def set_language(call: CallbackQuery, state: FSMContext) -> None:
+    lang = call.data.removeprefix(CB_LANG)
+    userprefs.set_lang(call.from_user.id, lang)
+    await state.update_data(lang=lang)
+    with suppress(TelegramBadRequest):
+        await call.message.edit_reply_markup(reply_markup=None)
+    await call.message.answer(t("language_set", lang))
+    await call.answer()
 
 
 # --------------------------------------------------------------------------- #
@@ -58,14 +98,21 @@ async def cmd_cancel(message: Message, state: FSMContext) -> None:
 # --------------------------------------------------------------------------- #
 @router.message(Planning.city, F.text)
 async def got_city(message: Message, state: FSMContext) -> None:
+    lang = await get_lang(state, message.from_user)
     city = message.text.strip()
     if len(city) < 2:
-        await message.answer("Хм, напиши, будь ласка, назву міста ще раз 🙂")
+        await message.answer(t("city_too_short", lang))
         return
+
+    # Якщо текст явно іншою мовою (кирилиця uk/ru) — підлаштовуємо мову.
+    detected = detect_language(city, default=lang)
+    if detected != lang:
+        lang = detected
+        await state.update_data(lang=lang)
+        userprefs.set_lang(message.from_user.id, lang)
 
     # Перевіряємо, що це справді існуюче місце (через OpenStreetMap),
     # щоб не будувати план для випадкового тексту чи питання.
-    # Показуємо "друкує…", поки шукаємо.
     found = True
     try:
         async with ChatActionSender.typing(
@@ -73,34 +120,23 @@ async def got_city(message: Message, state: FSMContext) -> None:
         ):
             found = await geocode_query(city) is not None
     except Exception:
-        # збій мережі — не блокуємо користувача, приймаємо як є
         logger.warning("Не вдалося перевірити місто '%s', приймаю як є", city)
         found = True
 
     if not found:
-        await message.answer(
-            "Хм, не можу знайти такого міста 🤔\n"
-            "Перевір назву і напиши ще раз — напр.: <b>Рим</b>, <b>Барселона</b>."
-        )
+        await message.answer(t("city_not_found", lang))
         return
 
     await state.update_data(city=city)
-    await message.answer(
-        f"Чудовий вибір — <b>{city}</b>! 🌍\n\n"
-        "<b>На скільки днів</b> ця подорож?\n"
-        "<i>Напиши число, напр.: 3</i>"
-    )
+    await message.answer(t("city_ok", lang, city=city))
     await state.set_state(Planning.days)
 
 
 # Будь-яке НЕтекстове повідомлення на цьому кроці (голосове, фото, стікер…)
 @router.message(Planning.city)
-async def city_wrong_type(message: Message) -> None:
-    await message.answer(
-        "Напиши, будь ласка, назву міста <b>текстом</b> 🙂\n"
-        "<i>Голосові повідомлення я поки не розумію — просто надрукуй місто, "
-        "напр.: Рим.</i>"
-    )
+async def city_wrong_type(message: Message, state: FSMContext) -> None:
+    lang = await get_lang(state, message.from_user)
+    await message.answer(t("city_wrong_type", lang))
 
 
 # --------------------------------------------------------------------------- #
@@ -108,24 +144,23 @@ async def city_wrong_type(message: Message) -> None:
 # --------------------------------------------------------------------------- #
 @router.message(Planning.days, F.text)
 async def got_days(message: Message, state: FSMContext) -> None:
+    lang = await get_lang(state, message.from_user)
     raw = message.text.strip()
     if not raw.isdigit() or not (1 <= int(raw) <= 30):
-        await message.answer("Напиши число від 1 до 30, будь ласка 🙂")
+        await message.answer(t("days_invalid", lang))
         return
     await state.update_data(days=int(raw), interests=[])
     await message.answer(
-        "Супер! Тепер обери, <b>що тобі цікаво</b> (можна кілька):",
-        reply_markup=interests_keyboard(set()),
+        t("ask_interests", lang), reply_markup=interests_keyboard(set(), lang)
     )
     await state.set_state(Planning.interests)
 
 
 # Будь-яке НЕтекстове повідомлення на кроці вибору днів
 @router.message(Planning.days)
-async def days_wrong_type(message: Message) -> None:
-    await message.answer(
-        "Напиши, будь ласка, <b>число</b> днів текстом 🙂 (напр.: 3)"
-    )
+async def days_wrong_type(message: Message, state: FSMContext) -> None:
+    lang = await get_lang(state, message.from_user)
+    await message.answer(t("days_wrong_type", lang))
 
 
 # --------------------------------------------------------------------------- #
@@ -133,6 +168,7 @@ async def days_wrong_type(message: Message) -> None:
 # --------------------------------------------------------------------------- #
 @router.callback_query(Planning.interests, F.data.startswith(CB_INTEREST))
 async def toggle_interest(call: CallbackQuery, state: FSMContext) -> None:
+    lang = await get_lang(state, call.from_user)
     value = call.data.removeprefix(CB_INTEREST)
     data = await state.get_data()
     selected = set(data.get("interests", []))
@@ -147,19 +183,17 @@ async def toggle_interest(call: CallbackQuery, state: FSMContext) -> None:
     # "message is not modified" — це не помилка, просто ігноруємо.
     with suppress(TelegramBadRequest):
         await call.message.edit_reply_markup(
-            reply_markup=interests_keyboard(selected)
+            reply_markup=interests_keyboard(selected, lang)
         )
     await call.answer()
 
 
 @router.callback_query(Planning.interests, F.data == CB_INTEREST_DONE)
 async def interests_done(call: CallbackQuery, state: FSMContext) -> None:
+    lang = await get_lang(state, call.from_user)
     with suppress(TelegramBadRequest):
         await call.message.edit_reply_markup(reply_markup=None)
-    await call.message.answer(
-        "І останнє — <b>який бюджет</b>?",
-        reply_markup=budget_keyboard(),
-    )
+    await call.message.answer(t("ask_budget", lang), reply_markup=budget_keyboard(lang))
     await state.set_state(Planning.budget)
     await call.answer()
 
@@ -169,6 +203,7 @@ async def interests_done(call: CallbackQuery, state: FSMContext) -> None:
 # --------------------------------------------------------------------------- #
 @router.callback_query(Planning.budget, F.data.startswith(CB_BUDGET))
 async def got_budget(call: CallbackQuery, state: FSMContext) -> None:
+    lang = await get_lang(state, call.from_user)
     budget_value = call.data.removeprefix(CB_BUDGET)
     data = await state.get_data()
     with suppress(TelegramBadRequest):
@@ -180,12 +215,12 @@ async def got_budget(call: CallbackQuery, state: FSMContext) -> None:
         days=data["days"],
         interests=[Interest(v) for v in data.get("interests", [])],
         budget=Budget(budget_value),
+        language=lang,
     )
     await state.clear()
 
     status = await call.message.answer(
-        f"🧭 Готую твій план по <b>{request.city}</b> на {request.days} дн.\n"
-        "Це займе хвилинку — складаю маршрут, шукаю місця і малюю картки…"
+        t("building", lang, city=request.city, days=request.days)
     )
 
     chat_id = call.message.chat.id
@@ -198,10 +233,7 @@ async def got_budget(call: CallbackQuery, state: FSMContext) -> None:
             plan, cards = await run_pipeline(request)
     except Exception:
         logger.exception("Помилка побудови плану")
-        await status.edit_text(
-            "😔 Ой, щось пішло не так під час побудови плану.\n"
-            "Спробуй ще раз: /start"
-        )
+        await status.edit_text(t("error", lang))
         return
 
     if plan.intro:
@@ -212,9 +244,5 @@ async def got_budget(call: CallbackQuery, state: FSMContext) -> None:
         for path in cards:
             await call.message.answer_photo(FSInputFile(path))
 
-    await call.message.answer(
-        "Готово! 🎒 Гарної подорожі!\n"
-        "Збережи картки собі — вони працюють і офлайн.\n\n"
-        "Хочеш ще один маршрут? Напиши /start"
-    )
+    await call.message.answer(t("done", lang))
     await status.delete()

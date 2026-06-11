@@ -11,6 +11,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from playwright.async_api import async_playwright
 
+from planner.i18n import kind_label, t, time_label
 from planner.models import DayPlan, PlaceKind, TimeOfDay, TripPlan
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -68,6 +69,9 @@ def _env() -> Environment:
     )
     env.globals["emoji"] = _emoji
     env.globals["time_icon"] = _time_icon
+    # локалізовані підписи типу місця / часу доби (мовою плану)
+    env.globals["kind_label"] = kind_label
+    env.globals["time_label"] = time_label
     return env
 
 
@@ -95,12 +99,16 @@ def _render_html(plan: TripPlan, day: DayPlan, total_days: int) -> str:
     template = _env().get_template("day_card.html")
     ordered = _ordered_places(day)
     collage = _pick_collage(ordered)
+    lang = plan.language or "uk"
     return template.render(
         city=plan.city,
         day=day,
         total_days=total_days,
         places=ordered,
         collage=collage,
+        lang=lang,
+        day_label=t("card_day", lang),
+        transport_label=t("card_transport", lang),
     )
 
 

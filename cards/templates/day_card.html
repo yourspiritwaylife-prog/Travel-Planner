@@ -30,11 +30,19 @@
     font-weight: 600;
     opacity: .92;
   }
+  .header .daylabel {
+    font-size: 22px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: .85;
+    margin-top: 16px;
+  }
   .header .day {
     font-size: 86px;
     font-weight: 800;
     line-height: 1.02;
-    margin-top: 4px;
+    margin-top: 0;
   }
   .header .day small { font-size: 32px; font-weight: 500; opacity: .85; }
   .header .title { font-size: 40px; font-weight: 700; margin-top: 14px; }
@@ -152,7 +160,8 @@
   <div class="card">
     <div class="header">
       <div class="city">{{ city }}</div>
-      <div class="day">{{ day.day_number }}<small> / {{ total_days }} день</small></div>
+      <div class="daylabel">{{ day_label }}</div>
+      <div class="day">{{ day.day_number }}<small> / {{ total_days }}</small></div>
       {% if day.title %}<div class="title">{{ day.title }}</div>{% endif %}
       {% if day.summary %}<div class="summary">{{ day.summary }}</div>{% endif %}
     </div>
@@ -167,7 +176,7 @@
           <div class="ph {{ hero.kind.name|lower }}">{{ emoji(hero.kind) }}</div>
         {% endif %}
         <div class="cap">
-          <div class="pin">{{ emoji(hero.kind) }} {{ hero.kind.value }}</div>
+          <div class="pin">{{ emoji(hero.kind) }} {{ kind_label(hero.kind, lang) }}</div>
           <div class="nm">{{ hero.name }}</div>
         </div>
       </div>
@@ -194,7 +203,7 @@
       <div class="step">
         <div class="dot">{{ time_icon(p.time_of_day) }}</div>
         <div class="body">
-          <span class="when">{{ p.time_of_day.value }}</span>
+          <span class="when">{{ time_label(p.time_of_day, lang) }}</span>
           <div class="name"><span class="emoji">{{ emoji(p.kind) }}</span>{{ p.name }}</div>
           {% if p.note %}<div class="note">{{ p.note }}</div>{% endif %}
           {% if p.travel_hint %}<div class="travel">→ {{ p.travel_hint }}</div>{% endif %}
@@ -204,7 +213,7 @@
     </div>
 
     {% if day.transport_hint %}
-    <div class="footer">🚇 <b>Транспорт:</b> {{ day.transport_hint }}</div>
+    <div class="footer">🚇 <b>{{ transport_label }}:</b> {{ day.transport_hint }}</div>
     {% endif %}
   </div>
 </body>
