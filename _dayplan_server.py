@@ -59,6 +59,44 @@ KEY = ENV["GOOGLE_PLACES_API_KEY"]
 PRICE = {"PRICE_LEVEL_INEXPENSIVE": "€", "PRICE_LEVEL_MODERATE": "€€",
          "PRICE_LEVEL_EXPENSIVE": "€€€", "PRICE_LEVEL_VERY_EXPENSIVE": "€€€€"}
 
+# --- Локалізація ОБГОРТКИ сторінки (сталі підписи) ---------------------------
+# Контент дня (назви, описи, час доби, day_label) дає сам агент МОВОЮ
+# користувача; тут лише фіксовані підписи. Мова береться з day JSON: "lang".
+# Невідома мова -> англійська; немає поля зовсім -> українська (сумісність).
+L10N = {
+    "uk": {
+        "rating_tbd": "рейтинг уточнюється", "open": "Працює",
+        "order": "Що замовити", "why": "Чому варто", "alt": "Альтернатива",
+        "travel": "Як дістатись", "ticket": "Тур / квиток", "book": "забронювати →",
+        "book_ahead": "Бронюй заздалегідь — місця/квитки часто розкуповують наперед",
+        "site": "Офіційний сайт", "tap": "↓ натисни для деталей",
+        "tap_short": "натисни ↓", "daytrips": "🌋 Виїзди поряд",
+        "daytrip_link": "Детальніше / забронювати →",
+        "alert": "⚠️ У ЦЕЙ ДЕНЬ є що бронювати ЗАЗДАЛЕГІДЬ — шукай позначки 🎟 нижче",
+        "around": "🚕 Пересування сьогодні", "culture": "🛕 Культура й традиції",
+        "tips": "💡 Корисно знати", "foot_default": "Гарної подорожі! 🎒",
+        "badge_ahead": "🎟 заздалегідь", "trip": "Подорож", "plan": "План",
+    },
+    "en": {
+        "rating_tbd": "rating to be confirmed", "open": "Open",
+        "order": "What to order", "why": "Why go", "alt": "Alternative",
+        "travel": "How to get there", "ticket": "Tour / ticket", "book": "book →",
+        "book_ahead": "Book ahead — spots/tickets often sell out in advance",
+        "site": "Official site", "tap": "↓ tap for details",
+        "tap_short": "tap ↓", "daytrips": "🌋 Day trips nearby",
+        "daytrip_link": "Details / book →",
+        "alert": "⚠️ THIS DAY has things to book IN ADVANCE — look for the 🎟 marks below",
+        "around": "🚕 Getting around today", "culture": "🛕 Culture & traditions",
+        "tips": "💡 Good to know", "foot_default": "Have a wonderful trip! 🎒",
+        "badge_ahead": "🎟 in advance", "trip": "Trip", "plan": "Plan",
+    },
+}
+
+
+def L(lang):
+    """Підписи обгортки потрібною мовою (uk -> сумісність, інакше -> en)."""
+    return L10N.get(lang) or L10N["en"]
+
 
 def esc(s):
     return html.escape(str(s or ""))
@@ -68,10 +106,10 @@ def num(n):
     return f"{n:,}".replace(",", " ") if n else "0"
 
 
-def fetch(query):
+def fetch(query, lang="uk"):
     if not KEY:
         return {}
-    body = {"textQuery": query, "languageCode": "uk", "pageSize": 1}
+    body = {"textQuery": query, "languageCode": lang or "uk", "pageSize": 1}
     req = urllib.request.Request(
         "https://places.googleapis.com/v1/places:searchText",
         data=json.dumps(body).encode(),
@@ -166,53 +204,53 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .foot{margin:14px 20px 0;font-size:13px;color:#7a7488;text-align:center}"""
 
 
-def stop_block(s):
+def stop_block(s, lang="uk"):
+    t = L(lang)
     star = (f'<span class="star">★ {s["rating"]}</span> ({num(s["reviews"])})'
-            if s.get("rating") else '<span style="color:#aaa">рейтинг уточнюється</span>')
+            if s.get("rating") else f'<span style="color:#aaa">{t["rating_tbd"]}</span>')
     price = f' · {s["price"]}' if s.get("price") else ""
     rows = ""
     if s.get("hours"):
-        rows += f'<div class="r">🕐 <b>Працює:</b> {esc(s["hours"])}</div>'
+        rows += f'<div class="r">🕐 <b>{t["open"]}:</b> {esc(s["hours"])}</div>'
     if s.get("desc"):
         rows += f'<div class="r">{esc(s["desc"])}</div>'
     if s.get("dish"):
-        rows += f'<div class="r">🍽 <b>Що замовити:</b></div><span class="chip">{esc(s["dish"])}</span>'
+        rows += f'<div class="r">🍽 <b>{t["order"]}:</b></div><span class="chip">{esc(s["dish"])}</span>'
     if s.get("why"):
-        rows += f'<div class="r">✨ <b>Чому варто:</b> {esc(s["why"])}</div>'
+        rows += f'<div class="r">✨ <b>{t["why"]}:</b> {esc(s["why"])}</div>'
     if s.get("entry"):
         rows += f'<div class="r entry"><span class="entrychip">{esc(s["entry"])}</span></div>'
     if s.get("alt"):
-        rows += f'<div class="r alt">🏨 <b>Альтернатива:</b> {esc(s["alt"])}</div>'
+        rows += f'<div class="r alt">🏨 <b>{t["alt"]}:</b> {esc(s["alt"])}</div>'
     if s.get("travel"):
-        rows += f'<div class="r">🚕 <b>Як дістатись:</b> {esc(s["travel"])}</div>'
+        rows += f'<div class="r">🚕 <b>{t["travel"]}:</b> {esc(s["travel"])}</div>'
     if s.get("booking"):
         b = s["booking"]
-        lbl = esc(b.get("label") or "Тур / квиток")
+        lbl = esc(b.get("label") or t["ticket"])
         link = (f' <a href="{esc(b["link"])}" target="_blank" rel="noopener">'
-                f'забронювати →</a>') if b.get("link") else ""
+                f'{t["book"]}</a>') if b.get("link") else ""
         note = f'<br>{esc(b["note"])}' if b.get("note") else ""
         rows += f'<div class="r bk">🎟 <b>{lbl}:</b>{link}{note}</div>'
     if s.get("book_ahead"):
-        rows += ('<div class="r ahead">⏳ Бронюй заздалегідь — місця/квитки '
-                 'часто розкуповують наперед</div>')
+        rows += f'<div class="r ahead">⏳ {t["book_ahead"]}</div>'
     if s.get("website"):
         rows += (f'<div class="r site">🔗 <a href="{esc(s["website"])}" '
-                 f'target="_blank" rel="noopener">Офіційний сайт</a></div>')
+                 f'target="_blank" rel="noopener">{t["site"]}</a></div>')
     if s.get("addr"):
         rows += f'<div class="addr">📍 {esc(s["addr"])}</div>'
     # час доби + (опц.) точний час старту та тривалість
     when = f'{esc(s["start"])} · {esc(s["time"])}' if s.get("start") else esc(s["time"])
     dur = f'<span class="dur">⏱ {esc(s["duration"])}</span>' if s.get("duration") else ""
-    badge = '<span class="badge-book">🎟 заздалегідь</span>' if s.get("book_ahead") else ""
+    badge = f'<span class="badge-book">{t["badge_ahead"]}</span>' if s.get("book_ahead") else ""
     img = s.get("photo") or ""
     return (f'<details class="stop"><summary><img class="th" src="{img}">'
             f'<div class="in"><span class="when">{when}</span>{dur}{badge}'
             f'<div class="nm">{esc(s["name"])}</div><div class="mt">{star}{price}</div>'
-            f'<div class="tap">↓ натисни для деталей</div></div></summary>'
+            f'<div class="tap">{t["tap"]}</div></div></summary>'
             f'<div class="more">{rows}</div></details>')
 
 
-def info_box(title, items, cls=""):
+def info_box(title, items, lang="uk", cls=""):
     """Згортний блок-список (транспорт / культура / поради): тап -> розгортається.
     items — рядок або список рядків."""
     if not items:
@@ -223,46 +261,50 @@ def info_box(title, items, cls=""):
     if not lis:
         return ""
     return (f'<details class="info {cls}"><summary><h3>{esc(title)}</h3>'
-            f'<span class="arr">натисни ↓</span></summary>'
+            f'<span class="arr">{L(lang)["tap_short"]}</span></summary>'
             f'<div class="ibody">{lis}</div></details>')
 
 
-def daytrips_box(trips):
+def daytrips_box(trips, lang="uk"):
     """Секція «Виїзди поряд» з перевіреними посиланнями."""
     if not trips:
         return ""
+    lbl = L(lang)
     rows = ""
     for t in trips:
         if not t.get("name"):
             continue
         link = (f'<a href="{esc(t["link"])}" target="_blank" rel="noopener">'
-                f'Детальніше / забронювати →</a>' if t.get("link") else "")
+                f'{lbl["daytrip_link"]}</a>' if t.get("link") else "")
         why = f' {esc(t["why"])}' if t.get("why") else ""
         rows += (f'<div class="t"><div class="tn">{esc(t["name"])}</div>'
                  f'<div class="td">{esc(t.get("desc", ""))}{why}</div>{link}</div>')
-    return f'<div class="trip"><h3>🌋 Виїзди поряд</h3>{rows}</div>' if rows else ""
+    return f'<div class="trip"><h3>{lbl["daytrips"]}</h3>{rows}</div>' if rows else ""
 
 
 def build_html(day):
+    # мова: з поля "lang" дня. Немає -> "uk" (сумісність зі старими файлами).
+    lang = (day.get("lang") or "uk").strip().lower() or "uk"
+    t = L(lang)
     stops = day.get("stops", [])
     for s in stops:
-        g = fetch(s.get("query", s.get("name", "")))
+        g = fetch(s.get("query", s.get("name", "")), lang)
         for k, v in g.items():
             if k != "purl" and not s.get(k):
                 s[k] = v
         s["photo"] = photo_data(g.get("purl"))
-    blocks = "\n".join(stop_block(s) for s in stops)
+    blocks = "\n".join(stop_block(s, lang) for s in stops)
     needs_book = any(s.get("book_ahead") for s in stops)
-    alert = ('<div class="alert">⚠️ У ЦЕЙ ДЕНЬ є що бронювати ЗАЗДАЛЕГІДЬ — '
-             'шукай позначки 🎟 нижче</div>') if needs_book else ""
-    around = info_box("🚕 Пересування сьогодні", day.get("getting_around"))
-    culture = info_box("🛕 Культура й традиції", day.get("culture"), "cult")
-    tips = info_box("💡 Корисно знати", day.get("tips"), "tips")
-    trips = daytrips_box(day.get("daytrips"))
-    foot = esc(day.get("foot", "")) or "Гарної подорожі! 🎒"
-    return f"""<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8">
+    alert = f'<div class="alert">{t["alert"]}</div>' if needs_book else ""
+    around = info_box(t["around"], day.get("getting_around"), lang)
+    culture = info_box(t["culture"], day.get("culture"), lang, "cult")
+    tips = info_box(t["tips"], day.get("tips"), lang, "tips")
+    trips = daytrips_box(day.get("daytrips"), lang)
+    foot = esc(day.get("foot", "")) or t["foot_default"]
+    html_lang = lang if lang in L10N else "en"
+    return f"""<!DOCTYPE html><html lang="{html_lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{esc(day.get('city',''))} — план</title><style>{CSS}</style></head><body>
+<title>{esc(day.get('city',''))}</title><style>{CSS}</style></head><body>
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
 <div class="sum">{esc(day.get('summary',''))}</div></div>
@@ -303,14 +345,17 @@ def main():
     page = build_html(day)
     # Назву даємо САМОМУ ФАЙЛУ — її Telegram і показує (надійніше за curl
     # ;filename=, який Telegram інколи ігнорує). Напр.: «Убуд — День 1 з 7, 12 червня.html»
-    label = (day.get("day_label") or "").replace(" / ", " з ").replace("/", "-")
+    lang = (day.get("lang") or "uk").strip().lower() or "uk"
+    t = L(lang)
+    sep = " з " if lang == "uk" else " / "
+    label = (day.get("day_label") or "").replace(" / ", sep).replace("/", "-")
     date = (day.get("date") or "").strip()
-    name = day.get("city", "Подорож")
+    name = day.get("city") or t["trip"]
     if label:
         name += f" — {label}"
     if date:
         name += f", {date}"
-    name = "".join(c for c in name if c not in '/\\:*?"<>|;\n\r\t').strip() or "План"
+    name = "".join(c for c in name if c not in '/\\:*?"<>|;\n\r\t').strip() or t["plan"]
     out = f"/tmp/{name}.html"
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(page)
