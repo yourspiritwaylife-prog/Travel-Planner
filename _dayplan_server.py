@@ -184,6 +184,18 @@ def num(n):
     return f"{n:,}".replace(",", " ") if n else "0"
 
 
+def safe_url(u, allow_data=False):
+    """Лише http(s) (і data:image для фото) — щоб у href/src не пролізли
+    схеми типу javascript:. Інакше повертаємо порожній рядок."""
+    u = str(u or "").strip()
+    low = u.lower()
+    if low.startswith(("https://", "http://")):
+        return u
+    if allow_data and low.startswith("data:image/"):
+        return u
+    return ""
+
+
 def fetch(query, lang="uk"):
     if not KEY:
         return {}
@@ -305,14 +317,16 @@ def stop_block(s, lang="uk"):
     if s.get("booking"):
         b = s["booking"]
         lbl = esc(b.get("label") or t["ticket"])
-        link = (f' <a href="{esc(b["link"])}" target="_blank" rel="noopener">'
-                f'{t["book"]}</a>') if b.get("link") else ""
+        blink = safe_url(b.get("link"))
+        link = (f' <a href="{esc(blink)}" target="_blank" rel="noopener">'
+                f'{t["book"]}</a>') if blink else ""
         note = f'<br>{esc(b["note"])}' if b.get("note") else ""
         rows += f'<div class="r bk">🎟 <b>{lbl}:</b>{link}{note}</div>'
     if s.get("book_ahead"):
         rows += f'<div class="r ahead">⏳ {t["book_ahead"]}</div>'
-    if s.get("website"):
-        rows += (f'<div class="r site">🔗 <a href="{esc(s["website"])}" '
+    wsite = safe_url(s.get("website"))
+    if wsite:
+        rows += (f'<div class="r site">🔗 <a href="{esc(wsite)}" '
                  f'target="_blank" rel="noopener">{t["site"]}</a></div>')
     if s.get("addr"):
         rows += f'<div class="addr">📍 {esc(s["addr"])}</div>'
@@ -320,8 +334,8 @@ def stop_block(s, lang="uk"):
     when = f'{esc(s["start"])} · {esc(s["time"])}' if s.get("start") else esc(s["time"])
     dur = f'<span class="dur">⏱ {esc(s["duration"])}</span>' if s.get("duration") else ""
     badge = f'<span class="badge-book">{t["badge_ahead"]}</span>' if s.get("book_ahead") else ""
-    img = s.get("photo") or ""
-    return (f'<details class="stop"><summary><img class="th" src="{img}">'
+    img = safe_url(s.get("photo"), allow_data=True)
+    return (f'<details class="stop"><summary><img class="th" src="{esc(img)}">'
             f'<div class="in"><span class="when">{when}</span>{dur}{badge}'
             f'<div class="nm">{esc(s["name"])}</div><div class="mt">{star}{price}</div>'
             f'<div class="tap">{t["tap"]}</div></div></summary>'
@@ -352,8 +366,9 @@ def daytrips_box(trips, lang="uk"):
     for t in trips:
         if not t.get("name"):
             continue
-        link = (f'<a href="{esc(t["link"])}" target="_blank" rel="noopener">'
-                f'{lbl["daytrip_link"]}</a>' if t.get("link") else "")
+        tlink = safe_url(t.get("link"))
+        link = (f'<a href="{esc(tlink)}" target="_blank" rel="noopener">'
+                f'{lbl["daytrip_link"]}</a>' if tlink else "")
         why = f' {esc(t["why"])}' if t.get("why") else ""
         rows += (f'<div class="t"><div class="tn">{esc(t["name"])}</div>'
                  f'<div class="td">{esc(t.get("desc", ""))}{why}</div>{link}</div>')
