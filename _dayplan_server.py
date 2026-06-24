@@ -466,18 +466,36 @@ def send(path, chat, caption, filename=""):
         return f"SEND_ERROR: {e}"
 
 
+def _cleanup_old_pages(keep_path):
+    """Прибрати старі згенеровані сторінки в /tmp (щоб не накопичувались),
+    лишивши щойно створену. Нічого довго не зберігаємо."""
+    import glob
+    import time
+    now = time.time()
+    for f in glob.glob("/tmp/*.html"):
+        if f == keep_path:
+            continue
+        try:
+            if now - os.path.getmtime(f) > 1800:  # старші за 30 хв
+                os.remove(f)
+        except OSError:
+            pass
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True)
     ap.add_argument("--chat", default="")
     ap.add_argument("--caption", default="")
-    ap.add_argument("--keep", action="store_true", help="не видаляти файл (для дебагу)")
+    ap.add_argument("--keep", action="store_true", help="не видаляти вхідний JSON (дебаг)")
+    ap.add_argument("--send-telegram", action="store_true",
+                    help="(легасі) пряма відправка в Telegram замість MEDIA-доставки")
     args = ap.parse_args()
     with open(args.data, encoding="utf-8") as fh:
         day = json.load(fh)
     page = build_html(day)
-    # Назву даємо САМОМУ ФАЙЛУ — її Telegram і показує (надійніше за curl
-    # ;filename=, який Telegram інколи ігнорує). Напр.: «Убуд — День 1 з 7, 12 червня.html»
+    # Назву даємо САМОМУ ФАЙЛУ — її показує і Telegram, і WhatsApp як назву документа.
+    # Напр.: «Убуд — День 1 з 7, 12 червня.html»
     lang = (day.get("lang") or "uk").strip().lower() or "uk"
     t = L(lang)
     sep = " з " if lang == "uk" else " / "
@@ -492,17 +510,25 @@ def main():
     out = f"/tmp/{name}.html"
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(page)
+    _cleanup_old_pages(out)
     print("BUILT:", out, f"({os.path.getsize(out)//1024} KB)")
-    print(send(out, args.chat, args.caption))
+
+    if args.send_telegram:
+        # Легасі-режим: пряма відправка в Telegram (лишено для тестів/сумісності).
+        print(send(out, args.chat, args.caption))
+    else:
+        # КАНАЛО-НЕЗАЛЕЖНА доставка: НЕ шлемо звідси. Агент доставляє сторінку
+        # користувачу повідомленням із MEDIA-тегом — і Telegram, і WhatsApp.
+        print("PAGE_READY — достав користувачу повідомленням РІВНО з цим рядком")
+        print("(тег приховається автоматично, людина бачить лише сторінку):")
+        print(f"MEDIA:{out} [[as_document]]")
+
+    # Вхідний JSON дня прибираємо (сторінку лишаємо — її ще доставляє агент).
     if not args.keep:
-        # Прибираємо і згенерований HTML, і ВХІДНИЙ JSON дня — щоб старі дні
-        # не лишались у /tmp і не надсилались повторно (захист від дублів).
-        for path in (out, args.data):
-            try:
-                os.remove(path)
-            except OSError:
-                pass
-        print("CLEANED: temp html + input json deleted")
+        try:
+            os.remove(args.data)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":
