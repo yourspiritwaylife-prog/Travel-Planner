@@ -418,9 +418,13 @@ def build_html(day):
     alert = f'<div class="alert">{t["alert"]}</div>' if needs_book else ""
     around = info_box(t["around"], day.get("getting_around"), lang)
     budget = info_box(t["budget"], day.get("budget"), lang, "bud")
-    culture = info_box(t["culture"], day.get("culture"), lang, "cult")
-    weather = info_box(t["weather"], day.get("weather_plan"), lang, "wx")
-    tips = info_box(t["tips"], day.get("tips"), lang, "tips")
+    # ОДИН блок «Корисно знати» = культура й традиції + дощ/спека/втома + поради
+    # (раніше це були 3 окремі блоки — об'єднані, щоб займати менше місця).
+    def _aslist(x):
+        return [] if not x else ([x] if isinstance(x, str) else list(x))
+    good_to_know = (_aslist(day.get("culture")) + _aslist(day.get("weather_plan"))
+                    + _aslist(day.get("tips")))
+    know = info_box(t["tips"], good_to_know, lang, "tips")
     trips = daytrips_box(day.get("daytrips"), lang)
     foot = esc(day.get("foot", "")) or t["foot_default"]
     # темп дня (бейдж у шапці) + короткий вайб (необовʼязковий, рендеримо лише якщо є)
@@ -437,7 +441,7 @@ def build_html(day):
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
 {sum_html}{pace}</div>
-{alert}{around}{budget}{culture}{weather}{tips}
+{alert}{around}{budget}{know}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
