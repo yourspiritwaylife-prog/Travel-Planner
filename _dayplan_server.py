@@ -268,8 +268,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .hero .ttl{font-size:20px;font-weight:700;margin-top:11px}
 .hero .sum{font-size:14px;opacity:.95;margin-top:6px;line-height:1.4}
 .hero .pace{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;background:rgba(255,255,255,.22);padding:4px 12px;border-radius:999px;margin-top:11px}
-.budget{margin:13px 15px 0;background:#fff;border-radius:14px;padding:11px 15px;font-size:14px;font-weight:700;color:#2a7d4f;box-shadow:0 5px 14px rgba(80,60,160,.10);line-height:1.45}
-.budget b{color:#2a7d4f}
+.info.bud h3{color:#2a7d4f}
 .info.wx h3{color:#4b8fd8}
 .list{padding:15px}
 .stop{background:#fff;border-radius:18px;box-shadow:0 6px 16px rgba(80,60,160,.12);overflow:hidden;margin-bottom:13px}
@@ -418,26 +417,27 @@ def build_html(day):
     needs_book = any(s.get("book_ahead") for s in stops)
     alert = f'<div class="alert">{t["alert"]}</div>' if needs_book else ""
     around = info_box(t["around"], day.get("getting_around"), lang)
+    budget = info_box(t["budget"], day.get("budget"), lang, "bud")
     culture = info_box(t["culture"], day.get("culture"), lang, "cult")
     weather = info_box(t["weather"], day.get("weather_plan"), lang, "wx")
     tips = info_box(t["tips"], day.get("tips"), lang, "tips")
     trips = daytrips_box(day.get("daytrips"), lang)
     foot = esc(day.get("foot", "")) or t["foot_default"]
-    # темп дня (бейдж у шапці) + денний бюджет (плашка під шапкою)
+    # темп дня (бейдж у шапці) + короткий вайб (необовʼязковий, рендеримо лише якщо є)
     pace_map = {"relaxed": t["pace_relaxed"], "balanced": t["pace_balanced"],
                 "packed": t["pace_packed"]}
     pv = pace_map.get((day.get("pace") or "").strip().lower(), "")
     pace = f'<div class="pace">{esc(pv)}</div>' if pv else ""
-    bv = str(day.get("budget") or "").strip()
-    budget = f'<div class="budget">{esc(t["budget"])}: {esc(bv)}</div>' if bv else ""
+    sm = esc(day.get("summary", ""))
+    sum_html = f'<div class="sum">{sm}</div>' if sm else ""
     html_lang = lang if lang in L10N else "en"
     return f"""<!DOCTYPE html><html lang="{html_lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(day.get('city',''))}</title><style>{CSS}</style></head><body>
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
-<div class="sum">{esc(day.get('summary',''))}</div>{pace}</div>
-{budget}{alert}{around}{culture}{weather}{tips}
+{sum_html}{pace}</div>
+{alert}{around}{budget}{culture}{weather}{tips}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
