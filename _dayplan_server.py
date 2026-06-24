@@ -76,6 +76,9 @@ L10N = {
         "around": "🚕 Пересування сьогодні", "culture": "🛕 Культура й традиції",
         "tips": "💡 Корисно знати", "foot_default": "Гарної подорожі! 🎒",
         "badge_ahead": "🎟 заздалегідь", "trip": "Подорож", "plan": "План",
+        "pace_relaxed": "спокійний темп", "pace_balanced": "помірний темп",
+        "pace_packed": "насичений темп", "budget": "💶 Бюджет дня",
+        "weather": "🌦 Якщо дощ, спека чи втома",
     },
     "en": {
         "rating_tbd": "rating to be confirmed", "open": "Open",
@@ -89,6 +92,9 @@ L10N = {
         "around": "🚕 Getting around today", "culture": "🛕 Culture & traditions",
         "tips": "💡 Good to know", "foot_default": "Have a wonderful trip! 🎒",
         "badge_ahead": "🎟 in advance", "trip": "Trip", "plan": "Plan",
+        "pace_relaxed": "relaxed pace", "pace_balanced": "balanced pace",
+        "pace_packed": "packed day", "budget": "💶 Day budget",
+        "weather": "🌦 If it rains, gets hot, or you're tired",
     },
     "es": {
         "rating_tbd": "valoración por confirmar", "open": "Horario",
@@ -102,6 +108,9 @@ L10N = {
         "around": "🚕 Cómo moverse hoy", "culture": "🛕 Cultura y tradiciones",
         "tips": "💡 Bueno saber", "foot_default": "¡Buen viaje! 🎒",
         "badge_ahead": "🎟 con antelación", "trip": "Viaje", "plan": "Plan",
+        "pace_relaxed": "ritmo relajado", "pace_balanced": "ritmo equilibrado",
+        "pace_packed": "día intenso", "budget": "💶 Presupuesto del día",
+        "weather": "🌦 Si llueve, hace calor o estás cansado",
     },
     "de": {
         "rating_tbd": "Bewertung folgt", "open": "Öffnungszeiten",
@@ -115,6 +124,9 @@ L10N = {
         "around": "🚕 Heute unterwegs", "culture": "🛕 Kultur & Traditionen",
         "tips": "💡 Gut zu wissen", "foot_default": "Gute Reise! 🎒",
         "badge_ahead": "🎟 im Voraus", "trip": "Reise", "plan": "Plan",
+        "pace_relaxed": "entspanntes Tempo", "pace_balanced": "ausgewogenes Tempo",
+        "pace_packed": "voller Tag", "budget": "💶 Tagesbudget",
+        "weather": "🌦 Bei Regen, Hitze oder Müdigkeit",
     },
     "fr": {
         "rating_tbd": "note à confirmer", "open": "Horaires",
@@ -128,6 +140,9 @@ L10N = {
         "around": "🚕 Se déplacer aujourd'hui", "culture": "🛕 Culture & traditions",
         "tips": "💡 Bon à savoir", "foot_default": "Bon voyage ! 🎒",
         "badge_ahead": "🎟 à l'avance", "trip": "Voyage", "plan": "Plan",
+        "pace_relaxed": "rythme tranquille", "pace_balanced": "rythme équilibré",
+        "pace_packed": "journée chargée", "budget": "💶 Budget du jour",
+        "weather": "🌦 S'il pleut, fait chaud ou en cas de fatigue",
     },
     "it": {
         "rating_tbd": "valutazione da confermare", "open": "Orari",
@@ -141,6 +156,9 @@ L10N = {
         "around": "🚕 Spostarsi oggi", "culture": "🛕 Cultura e tradizioni",
         "tips": "💡 Buono a sapersi", "foot_default": "Buon viaggio! 🎒",
         "badge_ahead": "🎟 in anticipo", "trip": "Viaggio", "plan": "Piano",
+        "pace_relaxed": "ritmo rilassato", "pace_balanced": "ritmo equilibrato",
+        "pace_packed": "giornata intensa", "budget": "💶 Budget del giorno",
+        "weather": "🌦 Se piove, fa caldo o sei stanco",
     },
     "pl": {
         "rating_tbd": "ocena do potwierdzenia", "open": "Godziny",
@@ -154,6 +172,9 @@ L10N = {
         "around": "🚕 Poruszanie się dziś", "culture": "🛕 Kultura i tradycje",
         "tips": "💡 Warto wiedzieć", "foot_default": "Udanej podróży! 🎒",
         "badge_ahead": "🎟 z wyprzedzeniem", "trip": "Podróż", "plan": "Plan",
+        "pace_relaxed": "spokojne tempo", "pace_balanced": "zrównoważone tempo",
+        "pace_packed": "intensywny dzień", "budget": "💶 Budżet dnia",
+        "weather": "🌦 Gdy deszcz, upał lub zmęczenie",
     },
     "ru": {
         "rating_tbd": "рейтинг уточняется", "open": "Часы работы",
@@ -167,6 +188,9 @@ L10N = {
         "around": "🚕 Передвижение сегодня", "culture": "🛕 Культура и традиции",
         "tips": "💡 Полезно знать", "foot_default": "Хорошего путешествия! 🎒",
         "badge_ahead": "🎟 заранее", "trip": "Поездка", "plan": "План",
+        "pace_relaxed": "спокойный темп", "pace_balanced": "умеренный темп",
+        "pace_packed": "насыщенный день", "budget": "💶 Бюджет дня",
+        "weather": "🌦 Если дождь, жара или усталость",
     },
 }
 
@@ -243,6 +267,10 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .hero .day{font-size:34px;font-weight:800;line-height:1.05;margin-top:6px}
 .hero .ttl{font-size:20px;font-weight:700;margin-top:11px}
 .hero .sum{font-size:14px;opacity:.95;margin-top:6px;line-height:1.4}
+.hero .pace{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;background:rgba(255,255,255,.22);padding:4px 12px;border-radius:999px;margin-top:11px}
+.budget{margin:13px 15px 0;background:#fff;border-radius:14px;padding:11px 15px;font-size:14px;font-weight:700;color:#2a7d4f;box-shadow:0 5px 14px rgba(80,60,160,.10);line-height:1.45}
+.budget b{color:#2a7d4f}
+.info.wx h3{color:#4b8fd8}
 .list{padding:15px}
 .stop{background:#fff;border-radius:18px;box-shadow:0 6px 16px rgba(80,60,160,.12);overflow:hidden;margin-bottom:13px}
 .stop>summary{list-style:none;display:flex;cursor:pointer;align-items:stretch}
@@ -391,17 +419,25 @@ def build_html(day):
     alert = f'<div class="alert">{t["alert"]}</div>' if needs_book else ""
     around = info_box(t["around"], day.get("getting_around"), lang)
     culture = info_box(t["culture"], day.get("culture"), lang, "cult")
+    weather = info_box(t["weather"], day.get("weather_plan"), lang, "wx")
     tips = info_box(t["tips"], day.get("tips"), lang, "tips")
     trips = daytrips_box(day.get("daytrips"), lang)
     foot = esc(day.get("foot", "")) or t["foot_default"]
+    # темп дня (бейдж у шапці) + денний бюджет (плашка під шапкою)
+    pace_map = {"relaxed": t["pace_relaxed"], "balanced": t["pace_balanced"],
+                "packed": t["pace_packed"]}
+    pv = pace_map.get((day.get("pace") or "").strip().lower(), "")
+    pace = f'<div class="pace">{esc(pv)}</div>' if pv else ""
+    bv = str(day.get("budget") or "").strip()
+    budget = f'<div class="budget">{esc(t["budget"])}: {esc(bv)}</div>' if bv else ""
     html_lang = lang if lang in L10N else "en"
     return f"""<!DOCTYPE html><html lang="{html_lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(day.get('city',''))}</title><style>{CSS}</style></head><body>
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
-<div class="sum">{esc(day.get('summary',''))}</div></div>
-{alert}{around}{culture}{tips}
+<div class="sum">{esc(day.get('summary',''))}</div>{pace}</div>
+{budget}{alert}{around}{culture}{weather}{tips}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
