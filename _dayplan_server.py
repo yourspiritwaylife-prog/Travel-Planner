@@ -70,7 +70,7 @@ L10N = {
         "travel": "Як дістатись", "ticket": "Тур / квиток", "book": "забронювати →",
         "book_ahead": "Бронюй заздалегідь — місця/квитки часто розкуповують наперед",
         "site": "Офіційний сайт", "tap": "↓ натисни для деталей",
-        "tap_short": "натисни ↓", "daytrips": "🌋 Виїзди поряд",
+        "tap_short": "натисни ↓", "daytrips": "💡 Альтернативні варіанти",
         "daytrip_link": "Детальніше / забронювати →",
         "alert": "⚠️ У ЦЕЙ ДЕНЬ є що бронювати ЗАЗДАЛЕГІДЬ — шукай позначки 🎟 нижче",
         "around": "🚕 Пересування сьогодні", "culture": "🛕 Культура й традиції",
@@ -86,7 +86,7 @@ L10N = {
         "travel": "How to get there", "ticket": "Tour / ticket", "book": "book →",
         "book_ahead": "Book ahead — spots/tickets often sell out in advance",
         "site": "Official site", "tap": "↓ tap for details",
-        "tap_short": "tap ↓", "daytrips": "🌋 Day trips nearby",
+        "tap_short": "tap ↓", "daytrips": "💡 Alternative options",
         "daytrip_link": "Details / book →",
         "alert": "⚠️ THIS DAY has things to book IN ADVANCE — look for the 🎟 marks below",
         "around": "🚕 Getting around today", "culture": "🛕 Culture & traditions",
@@ -102,7 +102,7 @@ L10N = {
         "travel": "Cómo llegar", "ticket": "Tour / entrada", "book": "reservar →",
         "book_ahead": "Reserva con antelación — las plazas/entradas suelen agotarse",
         "site": "Sitio oficial", "tap": "↓ toca para más detalles",
-        "tap_short": "toca ↓", "daytrips": "🌋 Excursiones cercanas",
+        "tap_short": "toca ↓", "daytrips": "💡 Opciones alternativas",
         "daytrip_link": "Más info / reservar →",
         "alert": "⚠️ ESTE DÍA hay cosas que reservar CON ANTELACIÓN — busca las marcas 🎟 abajo",
         "around": "🚕 Cómo moverse hoy", "culture": "🛕 Cultura y tradiciones",
@@ -118,7 +118,7 @@ L10N = {
         "travel": "Anfahrt", "ticket": "Tour / Ticket", "book": "buchen →",
         "book_ahead": "Frühzeitig buchen — Plätze/Tickets sind oft im Voraus ausverkauft",
         "site": "Offizielle Website", "tap": "↓ für Details tippen",
-        "tap_short": "tippen ↓", "daytrips": "🌋 Ausflüge in der Nähe",
+        "tap_short": "tippen ↓", "daytrips": "💡 Alternative Optionen",
         "daytrip_link": "Mehr / buchen →",
         "alert": "⚠️ AN DIESEM TAG gibt es Dinge, die man IM VORAUS buchen sollte — achte auf die 🎟 unten",
         "around": "🚕 Heute unterwegs", "culture": "🛕 Kultur & Traditionen",
@@ -134,7 +134,7 @@ L10N = {
         "travel": "Comment s'y rendre", "ticket": "Visite / billet", "book": "réserver →",
         "book_ahead": "Réservez à l'avance — les places/billets partent souvent vite",
         "site": "Site officiel", "tap": "↓ appuyez pour les détails",
-        "tap_short": "appuyez ↓", "daytrips": "🌋 Excursions à proximité",
+        "tap_short": "appuyez ↓", "daytrips": "💡 Autres options",
         "daytrip_link": "En savoir plus / réserver →",
         "alert": "⚠️ CE JOUR-LÀ, il y a des choses à réserver À L'AVANCE — repérez les 🎟 ci-dessous",
         "around": "🚕 Se déplacer aujourd'hui", "culture": "🛕 Culture & traditions",
@@ -150,7 +150,7 @@ L10N = {
         "travel": "Come arrivare", "ticket": "Tour / biglietto", "book": "prenota →",
         "book_ahead": "Prenota in anticipo — posti/biglietti spesso si esauriscono",
         "site": "Sito ufficiale", "tap": "↓ tocca per i dettagli",
-        "tap_short": "tocca ↓", "daytrips": "🌋 Gite nei dintorni",
+        "tap_short": "tocca ↓", "daytrips": "💡 Opzioni alternative",
         "daytrip_link": "Dettagli / prenota →",
         "alert": "⚠️ OGGI ci sono cose da prenotare IN ANTICIPO — cerca i segni 🎟 qui sotto",
         "around": "🚕 Spostarsi oggi", "culture": "🛕 Cultura e tradizioni",
@@ -166,7 +166,7 @@ L10N = {
         "travel": "Jak dojechać", "ticket": "Wycieczka / bilet", "book": "rezerwuj →",
         "book_ahead": "Rezerwuj z wyprzedzeniem — miejsca/bilety często szybko się kończą",
         "site": "Oficjalna strona", "tap": "↓ dotknij, aby zobaczyć szczegóły",
-        "tap_short": "dotknij ↓", "daytrips": "🌋 Wycieczki w pobliżu",
+        "tap_short": "dotknij ↓", "daytrips": "💡 Alternatywne opcje",
         "daytrip_link": "Więcej / rezerwuj →",
         "alert": "⚠️ TEGO DNIA są rzeczy do rezerwacji Z WYPRZEDZENIEM — szukaj znaków 🎟 poniżej",
         "around": "🚕 Poruszanie się dziś", "culture": "🛕 Kultura i tradycje",
@@ -182,7 +182,7 @@ L10N = {
         "travel": "Как добраться", "ticket": "Тур / билет", "book": "забронировать →",
         "book_ahead": "Бронируй заранее — места/билеты часто разбирают наперёд",
         "site": "Официальный сайт", "tap": "↓ нажми для деталей",
-        "tap_short": "нажми ↓", "daytrips": "🌋 Поездки рядом",
+        "tap_short": "нажми ↓", "daytrips": "💡 Альтернативные варианты",
         "daytrip_link": "Подробнее / забронировать →",
         "alert": "⚠️ В ЭТОТ ДЕНЬ есть что бронировать ЗАРАНЕЕ — ищи метки 🎟 ниже",
         "around": "🚕 Передвижение сегодня", "culture": "🛕 Культура и традиции",
@@ -230,7 +230,7 @@ def fetch(query, lang="uk"):
         headers={"Content-Type": "application/json", "X-Goog-Api-Key": KEY,
                  "X-Goog-FieldMask": ("places.rating,places.userRatingCount,"
                  "places.priceLevel,places.currentOpeningHours.weekdayDescriptions,"
-                 "places.photos,places.formattedAddress,places.websiteUri")},
+                 "places.photos,places.formattedAddress,places.websiteUri,places.addressComponents")},
         method="POST")
     try:
         p = (json.loads(urllib.request.urlopen(req, timeout=25).read().decode())
@@ -241,10 +241,15 @@ def fetch(query, lang="uk"):
     purl = (f"https://places.googleapis.com/v1/{photos[0]['name']}/media"
             f"?maxWidthPx=520&maxHeightPx=420&key={KEY}") if photos else ""
     hrs = (p.get("currentOpeningHours") or {}).get("weekdayDescriptions") or []
+    cc = ""
+    for _comp in (p.get("addressComponents") or []):
+        if "country" in (_comp.get("types") or []):
+            cc = (_comp.get("shortText") or "").upper()
+            break
     return {"rating": p.get("rating"), "reviews": p.get("userRatingCount"),
             "price": PRICE.get(p.get("priceLevel"), ""),
             "hours": (hrs[0].split(": ", 1)[-1] if hrs else ""),
-            "addr": p.get("formattedAddress", ""),
+            "addr": p.get("formattedAddress", ""), "cc": cc,
             "website": p.get("websiteUri", ""), "purl": purl}
 
 
@@ -297,6 +302,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .entrychip{display:inline-block;background:#eef7f0;color:#2a7d4f;font-weight:700;font-size:13px;padding:5px 11px;border-radius:9px}
 .more .ahead{margin-top:9px;color:#d12b2b;font-weight:800;font-size:14px;background:#ffe8e8;border-radius:9px;padding:8px 11px}
 .alert{margin:13px 15px 0;background:#ffe8e8;color:#d12b2b;border:1.6px solid #ff9b9b;border-radius:13px;padding:12px 14px;font-weight:800;font-size:14px;line-height:1.4;animation:pulse 1.6s ease-in-out infinite}
+.taxi{margin:13px 15px 0;background:#fff;border-radius:16px;padding:12px 15px;box-shadow:0 5px 14px rgba(80,60,160,.10);font-size:14px;line-height:1.5;color:#3a3f4b;font-weight:600}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .badge-book{display:inline-block;background:#ffe1e1;color:#d12b2b;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;margin-left:6px;border:1px solid #ffb3b3;vertical-align:middle}
 .dur{font-size:11px;color:#9a93a8;margin-left:8px;font-weight:600}
@@ -384,6 +390,47 @@ def info_box(title, items, lang="uk", cls=""):
             f'<div class="ibody">{lis}</div></details>')
 
 
+# --- Авто-визначення таксі-додатку за КРАЇНОЮ (надійно, не залежить від ШІ) ----
+TAXI_BY_CC = {
+    "IT": "FreeNow / itTaxi", "ES": "FreeNow / Cabify", "FR": "FreeNow / G7",
+    "DE": "FreeNow / Bolt", "GB": "Uber / Bolt", "IE": "FreeNow / Uber",
+    "PT": "Bolt / FreeNow", "NL": "Uber / Bolt", "BE": "Bolt / Uber",
+    "AT": "Bolt / FreeNow", "CH": "Uber / Bolt", "PL": "Bolt / Uber",
+    "CZ": "Bolt / Uber", "SK": "Bolt", "HU": "Bolt", "RO": "Bolt / Uber",
+    "GR": "FreeNow / Beat", "HR": "Bolt / Uber", "BG": "Bolt",
+    "EE": "Bolt", "LV": "Bolt", "LT": "Bolt", "UA": "Bolt / Uklon",
+    "GE": "Bolt / Yandex Go", "TR": "BiTaksi / iTaksi",
+    "AE": "Careem / Uber", "SA": "Careem / Uber", "QA": "Careem / Uber",
+    "EG": "Uber / Careem", "MA": "Careem / inDrive", "ZA": "Uber / Bolt",
+    "US": "Uber / Lyft", "CA": "Uber / Lyft", "MX": "Uber / DiDi",
+    "BR": "Uber / 99", "AR": "Cabify / Uber", "CL": "Uber / Cabify",
+    "CO": "Uber / DiDi", "PE": "Uber / DiDi",
+    "ID": "Grab / Gojek", "TH": "Grab / Bolt", "SG": "Grab / Gojek",
+    "MY": "Grab", "VN": "Grab / Be", "PH": "Grab", "IN": "Uber / Ola",
+    "JP": "Uber / GO", "KR": "Kakao T", "HK": "Uber / HKTaxi",
+    "TW": "Uber / LINE Taxi", "AU": "Uber / DiDi", "NZ": "Uber",
+}
+TAXI_TPL = {
+    "uk": "\U0001f695 \u0422\u0430\u043a\u0441\u0456: \u0432\u0438\u043a\u043b\u0438\u0447 \u0447\u0435\u0440\u0435\u0437 \u0437\u0430\u0441\u0442\u043e\u0441\u0443\u043d\u043e\u043a {app} (\u044f\u043a Uber) \u2014 \u0446\u0456\u043d\u0443 \u0432\u0438\u0434\u043d\u043e \u043d\u0430\u043f\u0435\u0440\u0435\u0434, \u043e\u043f\u043b\u0430\u0442\u0430 \u043a\u0430\u0440\u0442\u043a\u043e\u044e, \u043e\u0444\u0456\u0446\u0456\u0439\u043d\u0456 \u043c\u0430\u0448\u0438\u043d\u0438.",
+    "en": "\U0001f695 Taxi: use the {app} app (like Uber) \u2014 price shown upfront, pay by card, official cars.",
+    "es": "\U0001f695 Taxi: usa la app {app} (como Uber) \u2014 precio por adelantado, pago con tarjeta, coches oficiales.",
+    "de": "\U0001f695 Taxi: nutze die App {app} (wie Uber) \u2014 Preis vorab, Kartenzahlung, offizielle Autos.",
+    "fr": "\U0001f695 Taxi : utilise l'app {app} (comme Uber) \u2014 prix \u00e0 l'avance, paiement par carte, voitures officielles.",
+    "it": "\U0001f695 Taxi: usa l'app {app} (come Uber) \u2014 prezzo in anticipo, pagamento con carta, auto ufficiali.",
+    "pl": "\U0001f695 Taxi: u\u017cyj aplikacji {app} (jak Uber) \u2014 cena z g\u00f3ry, p\u0142atno\u015b\u0107 kart\u0105, oficjalne auta.",
+    "ru": "\U0001f695 \u0422\u0430\u043a\u0441\u0438: \u0432\u044b\u0437\u044b\u0432\u0430\u0439 \u0447\u0435\u0440\u0435\u0437 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435 {app} (\u043a\u0430\u043a Uber) \u2014 \u0446\u0435\u043d\u0430 \u0432\u0438\u0434\u043d\u0430 \u0437\u0430\u0440\u0430\u043d\u0435\u0435, \u043e\u043f\u043b\u0430\u0442\u0430 \u043a\u0430\u0440\u0442\u043e\u0439, \u043e\u0444\u0438\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043c\u0430\u0448\u0438\u043d\u044b.",
+}
+
+
+def taxi_line(cc, lang):
+    """Рядок про таксі-додаток країни — автоматично, без участі ШІ."""
+    app = TAXI_BY_CC.get((cc or "").upper())
+    if not app:
+        return ""
+    tpl = TAXI_TPL.get(lang if lang in TAXI_TPL else "en", TAXI_TPL["en"])
+    return tpl.format(app=app)
+
+
 def daytrips_box(trips, lang="uk"):
     """Секція «Виїзди поряд» з перевіреними посиланнями."""
     if not trips:
@@ -394,8 +441,12 @@ def daytrips_box(trips, lang="uk"):
         if not t.get("name"):
             continue
         tlink = safe_url(t.get("link"))
+        # СТРУКТУРНО: показуємо ЛИШЕ реальні варіанти з робочим лінком (тур / бронь /
+        # сторінка-заміна). Запис без лінка (зокрема «вибачення») — НЕ показуємо взагалі.
+        if not tlink:
+            continue
         link = (f'<a href="{esc(tlink)}" target="_blank" rel="noopener">'
-                f'{lbl["daytrip_link"]}</a>' if tlink else "")
+                f'{lbl["daytrip_link"]}</a>')
         why = f' {esc(t["why"])}' if t.get("why") else ""
         rows += (f'<div class="t"><div class="tn">{esc(t["name"])}</div>'
                  f'<div class="td">{esc(t.get("desc", ""))}{why}</div>{link}</div>')
@@ -425,7 +476,20 @@ def build_html(day):
     good_to_know = (_aslist(day.get("culture")) + _aslist(day.get("weather_plan"))
                     + _aslist(day.get("tips")))
     know = info_box(t["tips"], good_to_know, lang, "tips")
-    trips = daytrips_box(day.get("daytrips"), lang)
+    # «Альтернативні варіанти» показуємо ЛИШЕ у 2 випадках: у дні є тур АБО є маркер
+    # 🎟 «заздалегідь» (book_ahead) — тобто квитків може не бути. Інакше (вхід на місці /
+    # безкоштовно) блоку НЕМА взагалі. (Тур теж позначається book_ahead.)
+    _show_alts = any(s.get("book_ahead") for s in stops)
+    trips = daytrips_box(day.get("daytrips"), lang) if _show_alts else ""
+    # таксі-додаток — АВТОМАТИЧНО за країною (з Google Places); ШІ для цього не потрібен
+    _cc = ""
+    for _s in stops:
+        if _s.get("cc"):
+            _cc = _s["cc"]; break
+    _tx = taxi_line(_cc, lang)
+    if not _tx and day.get("taxi"):
+        _tx = "🚕 " + esc(day.get("taxi"))
+    taxi = f'<div class="taxi">{_tx}</div>' if _tx else ""
     foot = esc(day.get("foot", "")) or t["foot_default"]
     # темп дня (бейдж у шапці) + короткий вайб (необовʼязковий, рендеримо лише якщо є)
     pace_map = {"relaxed": t["pace_relaxed"], "balanced": t["pace_balanced"],
@@ -441,7 +505,7 @@ def build_html(day):
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
 {sum_html}{pace}</div>
-{alert}{around}{budget}{know}
+{alert}{taxi}{around}{budget}{know}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
@@ -482,20 +546,10 @@ def _cleanup_old_pages(keep_path):
             pass
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--data", required=True)
-    ap.add_argument("--chat", default="")
-    ap.add_argument("--caption", default="")
-    ap.add_argument("--keep", action="store_true", help="не видаляти вхідний JSON (дебаг)")
-    ap.add_argument("--send-telegram", action="store_true",
-                    help="(легасі) пряма відправка в Telegram замість MEDIA-доставки")
-    args = ap.parse_args()
-    with open(args.data, encoding="utf-8") as fh:
-        day = json.load(fh)
+def _build_and_write(day):
+    """Збудувати HTML дня і записати у /tmp; повернути шлях до файлу."""
     page = build_html(day)
     # Назву даємо САМОМУ ФАЙЛУ — її показує і Telegram, і WhatsApp як назву документа.
-    # Напр.: «Убуд — День 1 з 7, 12 червня.html»
     lang = (day.get("lang") or "uk").strip().lower() or "uk"
     t = L(lang)
     sep = " з " if lang == "uk" else " / "
@@ -510,6 +564,62 @@ def main():
     out = f"/tmp/{name}.html"
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(page)
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data", default="")
+    ap.add_argument("--all", action="store_true",
+                    help="зібрати ВСІ /tmp/day*.json за раз і вивести MEDIA-рядок на КОЖЕН день")
+    ap.add_argument("--chat", default="")
+    ap.add_argument("--caption", default="")
+    ap.add_argument("--keep", action="store_true", help="не видаляти вхідний JSON (дебаг)")
+    ap.add_argument("--send-telegram", action="store_true",
+                    help="(легасі) пряма відправка в Telegram замість MEDIA-доставки")
+    args = ap.parse_args()
+
+    # --- Режим ВСІ ДНІ за раз: надійна доставка цілої поїздки одним викликом ---
+    if args.all:
+        import glob
+        import re
+
+        def _num(f):
+            m = re.search(r"day(\d+)", os.path.basename(f))
+            return int(m.group(1)) if m else 0
+
+        files = sorted(glob.glob("/tmp/day*.json"), key=_num)
+        if not files:
+            print("NO_DAYS: немає /tmp/day*.json — спершу запиши дні")
+            return
+        built = []
+        for f in files:
+            try:
+                with open(f, encoding="utf-8") as fh:
+                    built.append(_build_and_write(json.load(fh)))
+            except Exception as e:  # noqa: BLE001
+                print(f"SKIP {f}: {e}")
+        if not built:
+            print("NO_DAYS: не вдалося зібрати жодного дня")
+            return
+        _cleanup_old_pages(built[-1])
+        print(f"BUILT {len(built)} day page(s).")
+        print("PAGE_READY — достав користувачу ВСІ рядки MEDIA нижче (РІВНО, по одному на день):")
+        for b in built:
+            print(f"MEDIA:{b} [[as_document]]")
+        if not args.keep:
+            for f in files:
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+        return
+
+    if not args.data:
+        ap.error("потрібно --data <файл> або --all")
+    with open(args.data, encoding="utf-8") as fh:
+        day = json.load(fh)
+    out = _build_and_write(day)
     _cleanup_old_pages(out)
     print("BUILT:", out, f"({os.path.getsize(out)//1024} KB)")
 
@@ -523,7 +633,6 @@ def main():
         print("(тег приховається автоматично, людина бачить лише сторінку):")
         print(f"MEDIA:{out} [[as_document]]")
 
-    # Вхідний JSON дня прибираємо (сторінку лишаємо — її ще доставляє агент).
     if not args.keep:
         try:
             os.remove(args.data)
