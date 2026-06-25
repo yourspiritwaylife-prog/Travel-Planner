@@ -441,12 +441,8 @@ def daytrips_box(trips, lang="uk"):
         if not t.get("name"):
             continue
         tlink = safe_url(t.get("link"))
-        # СТРУКТУРНО: показуємо ЛИШЕ реальні варіанти з робочим лінком (тур / бронь /
-        # сторінка-заміна). Запис без лінка (зокрема «вибачення») — НЕ показуємо взагалі.
-        if not tlink:
-            continue
         link = (f'<a href="{esc(tlink)}" target="_blank" rel="noopener">'
-                f'{lbl["daytrip_link"]}</a>')
+                f'{lbl["daytrip_link"]}</a>') if tlink else ""
         why = f' {esc(t["why"])}' if t.get("why") else ""
         rows += (f'<div class="t"><div class="tn">{esc(t["name"])}</div>'
                  f'<div class="td">{esc(t.get("desc", ""))}{why}</div>{link}</div>')
@@ -467,7 +463,16 @@ def build_html(day):
     blocks = "\n".join(stop_block(s, lang) for s in stops)
     needs_book = any(s.get("book_ahead") for s in stops)
     alert = f'<div class="alert">{t["alert"]}</div>' if needs_book else ""
-    around = info_box(t["around"], day.get("getting_around"), lang)
+    # таксі-додаток — АВТОМАТИЧНО за країною (Google Places), ПЕРШИМ підпунктом у блоці
+    _cc = ""
+    for _s in stops:
+        if _s.get("cc"):
+            _cc = _s["cc"]
+            break
+    _taxi = taxi_line(_cc, lang) or (("\U0001f695 " + day.get("taxi")) if day.get("taxi") else "")
+    _ga = day.get("getting_around")
+    _ga_items = ([_taxi] if _taxi else []) + ([_ga] if isinstance(_ga, str) and _ga else (list(_ga) if _ga else []))
+    around = info_box(t["around"], _ga_items, lang)
     budget = info_box(t["budget"], day.get("budget"), lang, "bud")
     # ОДИН блок «Корисно знати» = культура й традиції + дощ/спека/втома + поради
     # (раніше це були 3 окремі блоки — об'єднані, щоб займати менше місця).
@@ -476,20 +481,19 @@ def build_html(day):
     good_to_know = (_aslist(day.get("culture")) + _aslist(day.get("weather_plan"))
                     + _aslist(day.get("tips")))
     know = info_box(t["tips"], good_to_know, lang, "tips")
-    # «Альтернативні варіанти» показуємо ЛИШЕ у 2 випадках: у дні є тур АБО є маркер
-    # 🎟 «заздалегідь» (book_ahead) — тобто квитків може не бути. Інакше (вхід на місці /
-    # безкоштовно) блоку НЕМА взагалі. (Тур теж позначається book_ahead.)
-    _show_alts = any(s.get("book_ahead") for s in stops)
-    trips = daytrips_box(day.get("daytrips"), lang) if _show_alts else ""
-    # таксі-додаток — АВТОМАТИЧНО за країною (з Google Places); ШІ для цього не потрібен
-    _cc = ""
+    # «Альтернативні варіанти» (блок унизу) будуємо ЛИШЕ з реального вмісту:
+    #  • тури/виїзди за місто з лінком (поле `daytrips`);
+    #  • заміна на випадок «нема квитків» для зупинок із book_ahead (поле `alt_if_soldout`).
+    # Нема вмісту → блоку НЕМА (жодних «вибачень» — їх нема де взятися).
+    _alts = []
+    for _d in (day.get("daytrips") or []):
+        if _d.get("name") and safe_url(_d.get("link")):
+            _alts.append(_d)
     for _s in stops:
-        if _s.get("cc"):
-            _cc = _s["cc"]; break
-    _tx = taxi_line(_cc, lang)
-    if not _tx and day.get("taxi"):
-        _tx = "🚕 " + esc(day.get("taxi"))
-    taxi = f'<div class="taxi">{_tx}</div>' if _tx else ""
+        if _s.get("book_ahead") and _s.get("alt_if_soldout"):
+            _alts.append({"name": _s.get("name", ""), "desc": _s.get("alt_if_soldout"),
+                          "link": _s.get("alt_link", "")})
+    trips = daytrips_box(_alts, lang)
     foot = esc(day.get("foot", "")) or t["foot_default"]
     # темп дня (бейдж у шапці) + короткий вайб (необовʼязковий, рендеримо лише якщо є)
     pace_map = {"relaxed": t["pace_relaxed"], "balanced": t["pace_balanced"],
@@ -505,7 +509,7 @@ def build_html(day):
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
 {sum_html}{pace}</div>
-{alert}{taxi}{around}{budget}{know}
+{alert}{around}{budget}{know}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
