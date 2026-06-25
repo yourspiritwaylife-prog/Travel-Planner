@@ -327,6 +327,24 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .foot{margin:14px 20px 0;font-size:13px;color:#7a7488;text-align:center}"""
 
 
+def _end_time(start, dur):
+    """Кінець = старт + тривалість (для діапазону «09:00–11:30»). Парсить год/хв
+    кількома мовами. Поверне '' якщо не вдалось розпарсити."""
+    import re
+    m = re.match(r"\s*(\d{1,2}):(\d{2})", start or "")
+    if not m:
+        return ""
+    base = int(m.group(1)) * 60 + int(m.group(2))
+    t = (dur or "").lower()
+    hh = re.search(r"(\d+)\s*(?:год|годин|hours?|hrs?|h\b|heures?|ore|ora|stunden?|std|godz|saat|час|ч\b)", t)
+    mm = re.search(r"(\d+)\s*(?:хвил\w*|хв|min\w*|мин\w*)", t)
+    add = (int(hh.group(1)) * 60 if hh else 0) + (int(mm.group(1)) if mm else 0)
+    if add <= 0:
+        return ""
+    end = (base + add) % (24 * 60)
+    return "%02d:%02d" % (end // 60, end % 60)
+
+
 def stop_block(s, lang="uk"):
     t = L(lang)
     star = (f'<span class="star">★ {s["rating"]}</span> ({num(s["reviews"])})'
@@ -363,8 +381,15 @@ def stop_block(s, lang="uk"):
                  f'target="_blank" rel="noopener">{t["site"]}</a></div>')
     if s.get("addr"):
         rows += f'<div class="addr">📍 {esc(s["addr"])}</div>'
-    # час доби + (опц.) точний час старту та тривалість
-    when = f'{esc(s["start"])} · {esc(s["time"])}' if s.get("start") else esc(s["time"])
+    # час: показуємо ДІАПАЗОН «старт–кінець» (кінець = старт + тривалість).
+    # Без тривалості — лише старт; без старту — словесний час доби.
+    _end = _end_time(s.get("start"), s.get("duration")) if s.get("start") else ""
+    if s.get("start") and _end:
+        when = f'{esc(s["start"])}–{esc(_end)}'
+    elif s.get("start"):
+        when = esc(s["start"])
+    else:
+        when = esc(s.get("time", ""))
     dur = f'<span class="dur">⏱ {esc(s["duration"])}</span>' if s.get("duration") else ""
     badge = f'<span class="badge-book">{t["badge_ahead"]}</span>' if s.get("book_ahead") else ""
     img = safe_url(s.get("photo"), allow_data=True)
