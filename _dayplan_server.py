@@ -29,6 +29,7 @@ import html
 import json
 import os
 import subprocess
+import urllib.parse
 import urllib.request
 
 
@@ -242,14 +243,17 @@ def fetch(query, lang="uk"):
             f"?maxWidthPx=520&maxHeightPx=420&key={KEY}") if photos else ""
     hrs = (p.get("currentOpeningHours") or {}).get("weekdayDescriptions") or []
     cc = ""
+    loc = ""
     for _comp in (p.get("addressComponents") or []):
-        if "country" in (_comp.get("types") or []):
+        _types = _comp.get("types") or []
+        if "country" in _types:
             cc = (_comp.get("shortText") or "").upper()
-            break
+        if not loc and ("locality" in _types or "postal_town" in _types):
+            loc = _comp.get("longText") or _comp.get("shortText") or ""
     return {"rating": p.get("rating"), "reviews": p.get("userRatingCount"),
             "price": PRICE.get(p.get("priceLevel"), ""),
             "hours": (hrs[0].split(": ", 1)[-1] if hrs else ""),
-            "addr": p.get("formattedAddress", ""), "cc": cc,
+            "addr": p.get("formattedAddress", ""), "cc": cc, "loc": loc,
             "website": p.get("websiteUri", ""), "purl": purl}
 
 
@@ -447,6 +451,18 @@ TAXI_TPL = {
 }
 
 
+ALT_FALLBACK = {
+    "uk": "Якщо квитків нема — пошукай тур / вхід без черги",
+    "en": "If sold out — find a skip-the-line tour",
+    "es": "Si está agotado — busca un tour sin colas",
+    "de": "Ausverkauft? — Skip-the-Line-Tour suchen",
+    "fr": "Complet ? — cherche une visite coupe-file",
+    "it": "Esaurito? — cerca un tour salta-fila",
+    "pl": "Brak biletów? — poszukaj wycieczki bez kolejki",
+    "ru": "Нет билетов — поищи тур / вход без очереди",
+}
+
+
 def taxi_line(cc, lang):
     """Рядок про таксі-додаток країни — автоматично, без участі ШІ."""
     app = TAXI_BY_CC.get((cc or "").upper())
@@ -485,6 +501,12 @@ def build_html(day):
             if k != "purl" and not s.get(k):
                 s[k] = v
         s["photo"] = photo_data(g.get("purl"))
+    # місто для заголовка/назви: якщо агент не дав — беремо з Google Places (locality)
+    if not (day.get("city") or "").strip():
+        for _s in stops:
+            if _s.get("loc"):
+                day["city"] = _s["loc"]
+                break
     blocks = "\n".join(stop_block(s, lang) for s in stops)
     needs_book = any(s.get("book_ahead") for s in stops)
     alert = f'<div class="alert">{t["alert"]}</div>' if needs_book else ""
@@ -515,9 +537,18 @@ def build_html(day):
         if _d.get("name") and safe_url(_d.get("link")):
             _alts.append(_d)
     for _s in stops:
-        if _s.get("book_ahead") and _s.get("alt_if_soldout"):
+        if not _s.get("book_ahead"):
+            continue
+        if _s.get("alt_if_soldout"):
             _alts.append({"name": _s.get("name", ""), "desc": _s.get("alt_if_soldout"),
                           "link": _s.get("alt_link", "")})
+        elif _s.get("name"):
+            # СТРУКТУРНИЙ запас: блок альтернатив зʼявляється ЗАВЖДИ при 🎟,
+            # навіть якщо модель не дала alt_if_soldout — пропонуємо тур/вхід без черги.
+            _q = urllib.parse.quote(_s.get("name", ""))
+            _alts.append({"name": _s.get("name", ""),
+                          "desc": ALT_FALLBACK.get(lang if lang in ALT_FALLBACK else "en", ALT_FALLBACK["en"]),
+                          "link": "https://www.getyourguide.com/s/?q=" + _q})
     trips = daytrips_box(_alts, lang)
     foot = esc(day.get("foot", "")) or t["foot_default"]
     # темп дня (бейдж у шапці) + короткий вайб (необовʼязковий, рендеримо лише якщо є)
