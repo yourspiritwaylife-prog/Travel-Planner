@@ -331,22 +331,44 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .foot{margin:14px 20px 0;font-size:13px;color:#7a7488;text-align:center}"""
 
 
+def _dur_minutes(dur):
+    """Тривалість у хвилинах із тексту («1 год 30 хв», «1 hr 30 min», …). 0 якщо не вдалось."""
+    import re
+    t = (dur or "").lower()
+    hh = re.search(r"(\d+)\s*(?:год|годин|hours?|hrs?|h\b|heures?|ore|ora|stunden?|std|godz|saat|час|ч\b)", t)
+    mm = re.search(r"(\d+)\s*(?:хвил\w*|хв|min\w*|мин\w*)", t)
+    return (int(hh.group(1)) * 60 if hh else 0) + (int(mm.group(1)) if mm else 0)
+
+
 def _end_time(start, dur):
-    """Кінець = старт + тривалість (для діапазону «09:00–11:30»). Парсить год/хв
-    кількома мовами. Поверне '' якщо не вдалось розпарсити."""
+    """Кінець = старт + тривалість (для діапазону «09:00–11:30»). '' якщо не вдалось."""
     import re
     m = re.match(r"\s*(\d{1,2}):(\d{2})", start or "")
     if not m:
         return ""
-    base = int(m.group(1)) * 60 + int(m.group(2))
-    t = (dur or "").lower()
-    hh = re.search(r"(\d+)\s*(?:год|годин|hours?|hrs?|h\b|heures?|ore|ora|stunden?|std|godz|saat|час|ч\b)", t)
-    mm = re.search(r"(\d+)\s*(?:хвил\w*|хв|min\w*|мин\w*)", t)
-    add = (int(hh.group(1)) * 60 if hh else 0) + (int(mm.group(1)) if mm else 0)
+    add = _dur_minutes(dur)
     if add <= 0:
         return ""
-    end = (base + add) % (24 * 60)
+    end = (int(m.group(1)) * 60 + int(m.group(2)) + add) % (24 * 60)
     return "%02d:%02d" % (end // 60, end % 60)
+
+
+def ensure_schedule(stops):
+    """ГАРАНТІЯ ГОДИН: якщо модель не дала час — будуємо розумний послідовний графік
+    (день із 09:00, тривалості за замовч. 1.5 год, +30 хв на дорогу). Реальні часи від моделі НЕ чіпаємо."""
+    import re
+    if not stops or all(s.get("start") for s in stops):
+        return
+    cur = 9 * 60
+    for s in stops:
+        m = re.match(r"\s*(\d{1,2}):(\d{2})", s.get("start") or "")
+        if m:
+            cur = int(m.group(1)) * 60 + int(m.group(2))
+        else:
+            s["start"] = "%02d:%02d" % (cur // 60, cur % 60)
+        dur = _dur_minutes(s.get("duration")) or 90
+        s["_end_auto"] = "%02d:%02d" % (((cur + dur) % (24 * 60)) // 60, ((cur + dur) % (24 * 60)) % 60)
+        cur = (cur + dur + 30) % (24 * 60)
 
 
 def stop_block(s, lang="uk"):
@@ -388,6 +410,8 @@ def stop_block(s, lang="uk"):
     # час: показуємо ДІАПАЗОН «старт–кінець» (кінець = старт + тривалість).
     # Без тривалості — лише старт; без старту — словесний час доби.
     _end = _end_time(s.get("start"), s.get("duration")) if s.get("start") else ""
+    if not _end:
+        _end = s.get("_end_auto", "")
     if s.get("start") and _end:
         when = f'{esc(s["start"])}–{esc(_end)}'
     elif s.get("start"):
@@ -463,6 +487,14 @@ ALT_FALLBACK = {
 }
 
 
+def _viator_search(name):
+    """Пошукове посилання Viator (фолбек-альтернатива). З affiliate-трекінгом, якщо заданий VIATOR_PID."""
+    q = urllib.parse.quote(name or "")
+    pid = os.environ.get("VIATOR_PID", "").strip()
+    track = ("&pid=%s&mcid=42383&medium=link" % urllib.parse.quote(pid)) if pid else ""
+    return "https://www.viator.com/searchResults/all?text=" + q + track
+
+
 def taxi_line(cc, lang):
     """Рядок про таксі-додаток країни — автоматично, без участі ШІ."""
     app = TAXI_BY_CC.get((cc or "").upper())
@@ -507,6 +539,7 @@ def build_html(day):
             if _s.get("loc"):
                 day["city"] = _s["loc"]
                 break
+    ensure_schedule(stops)
     blocks = "\n".join(stop_block(s, lang) for s in stops)
     needs_book = any(s.get("book_ahead") for s in stops)
     alert = f'<div class="alert">{t["alert"]}</div>' if needs_book else ""
@@ -545,10 +578,9 @@ def build_html(day):
         elif _s.get("name"):
             # СТРУКТУРНИЙ запас: блок альтернатив зʼявляється ЗАВЖДИ при 🎟,
             # навіть якщо модель не дала alt_if_soldout — пропонуємо тур/вхід без черги.
-            _q = urllib.parse.quote(_s.get("name", ""))
             _alts.append({"name": _s.get("name", ""),
                           "desc": ALT_FALLBACK.get(lang if lang in ALT_FALLBACK else "en", ALT_FALLBACK["en"]),
-                          "link": "https://www.getyourguide.com/s/?q=" + _q})
+                          "link": _viator_search(_s.get("name", ""))})
     trips = daytrips_box(_alts, lang)
     foot = esc(day.get("foot", "")) or t["foot_default"]
     # темп дня (бейдж у шапці) + короткий вайб (необовʼязковий, рендеримо лише якщо є)
