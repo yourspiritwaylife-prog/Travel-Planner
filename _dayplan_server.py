@@ -55,7 +55,8 @@ def _env(keys):
     return vals
 
 
-ENV = _env(["GOOGLE_PLACES_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_HOME_CHANNEL", "VIATOR_PID"])
+ENV = _env(["GOOGLE_PLACES_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_HOME_CHANNEL",
+            "VIATOR_PID", "BOOKING_AID"])
 KEY = ENV["GOOGLE_PLACES_API_KEY"]
 PRICE = {"PRICE_LEVEL_INEXPENSIVE": "€", "PRICE_LEVEL_MODERATE": "€€",
          "PRICE_LEVEL_EXPENSIVE": "€€€", "PRICE_LEVEL_VERY_EXPENSIVE": "€€€€"}
@@ -328,6 +329,14 @@ body{font-family:-apple-system,'Segoe UI',system-ui,Arial,sans-serif;background:
 .trip .t .tn{font-size:15px;font-weight:700}
 .trip .t .td{font-size:13px;color:#515767;line-height:1.45;margin-top:3px}
 .trip .t a{display:inline-block;margin-top:6px;color:#7c5cff;font-weight:700;font-size:13px;text-decoration:none}
+.stay{margin:13px 15px 0;background:#fff;border-radius:16px;padding:14px 15px;box-shadow:0 5px 14px rgba(80,60,160,.10);border-left:4px solid #fc5c8d}
+.stay h3{font-size:14px;font-weight:800;color:#b5179e;margin-bottom:9px}
+.stay .sname{font-size:18px;font-weight:800;line-height:1.2}
+.stay .staddr{color:#9a93a8;font-size:13px;margin-top:6px}
+.stay .r{margin-top:9px;font-size:14px;line-height:1.5;color:#3a3f4b}
+.stay .slinks{margin-top:12px;display:flex;gap:9px;flex-wrap:wrap}
+.stay .slinks a{display:inline-block;background:#f3f0ff;color:#7c5cff;font-weight:700;font-size:13px;padding:9px 14px;border-radius:10px;text-decoration:none}
+.stay .slinks a.bkg{background:#003580;color:#fff}
 .foot{margin:14px 20px 0;font-size:13px;color:#7a7488;text-align:center}"""
 
 
@@ -486,6 +495,15 @@ ALT_FALLBACK = {
     "ru": "Нет билетов — поищи тур / вход без очереди",
 }
 
+# Заголовок блоку «Де зупинитись» (рекомендоване житло). Окремо від L10N — щоб
+# не чіпати кожен мовний словник; невідома мова -> англійська.
+STAY_TITLE = {
+    "uk": "🏨 Де зупинитись", "en": "🏨 Where to stay",
+    "es": "🏨 Dónde alojarse", "de": "🏨 Unterkunft",
+    "fr": "🏨 Où loger", "it": "🏨 Dove alloggiare",
+    "pl": "🏨 Gdzie się zatrzymać", "ru": "🏨 Где остановиться",
+}
+
 
 def _viator_search(name):
     """Пошукове посилання Viator (фолбек-альтернатива). З affiliate-трекінгом, якщо заданий VIATOR_PID."""
@@ -493,6 +511,50 @@ def _viator_search(name):
     pid = (ENV.get("VIATOR_PID") or os.environ.get("VIATOR_PID", "")).strip()
     track = ("&pid=%s&mcid=42383&medium=link" % urllib.parse.quote(pid)) if pid else ""
     return "https://www.viator.com/searchResults/all?text=" + q + track
+
+
+def booking_url(name, city):
+    """Лінк-пошук готелю на Booking.com (там користувачі збирають свої бонуси/Genius).
+    Affiliate `aid` додаємо ЛИШЕ якщо заданий BOOKING_AID — інакше чистий лінк."""
+    q = urllib.parse.quote((f"{name} {city}").strip())
+    aid = (ENV.get("BOOKING_AID") or os.environ.get("BOOKING_AID", "")).strip()
+    aff = ("&aid=" + urllib.parse.quote(aid)) if aid else ""
+    return "https://www.booking.com/searchresults.html?ss=" + q + aff
+
+
+def stay_box(stay, city, lang="uk"):
+    """Блок «Де зупинитись»: РЕКОМЕНДОВАНЕ житло (коли користувач сам не обрав готель).
+    Рейтинг/офіц.сайт — з Google Places; ДВА посилання: офіційний сайт + Booking.com.
+    Це ОКРЕМИЙ блок — НЕ зупинка дня (день лишається повним: їжа/локації/прогулянки)."""
+    if not stay or not (stay.get("name") or "").strip():
+        return ""
+    t = L(lang)
+    title = STAY_TITLE.get(lang if lang in STAY_TITLE else "en", STAY_TITLE["en"])
+    g = fetch(stay.get("query") or f'{stay.get("name")}, {city}', lang)
+    star = (f'<span class="star">★ {g["rating"]}</span> ({num(g["reviews"])})'
+            if g.get("rating") else "")
+    price_g = f' · {g["price"]}' if g.get("price") else ""
+    rows = ""
+    if stay.get("area"):
+        rows += f'<div class="staddr">📍 {esc(stay["area"])}</div>'
+    elif g.get("addr"):
+        rows += f'<div class="staddr">📍 {esc(g["addr"])}</div>'
+    if stay.get("why"):
+        rows += f'<div class="r">✨ {esc(stay["why"])}</div>'
+    if stay.get("price"):
+        rows += f'<span class="chip">{esc(stay["price"])}</span>'
+    site = safe_url(stay.get("site") or g.get("website"))
+    links = ""
+    if site:
+        links += (f'<a href="{esc(site)}" target="_blank" rel="noopener">'
+                  f'{t["site"]} ↗</a>')
+    bk = booking_url(stay["name"], city or "")
+    links += (f'<a class="bkg" href="{esc(bk)}" target="_blank" rel="noopener">'
+              f'Booking.com ↗</a>')
+    return (f'<div class="stay"><h3>{esc(title)}</h3>'
+            f'<div class="sname">{esc(stay["name"])}</div>'
+            f'<div class="mt">{star}{price_g}</div>{rows}'
+            f'<div class="slinks">{links}</div></div>')
 
 
 def taxi_line(cc, lang):
@@ -549,7 +611,13 @@ def build_html(day):
         if _s.get("cc"):
             _cc = _s["cc"]
             break
-    _taxi = taxi_line(_cc, lang) or (("\U0001f695 " + day.get("taxi")) if day.get("taxi") else "")
+    # `ride_app: false` — у районах, де агрегатори НЕ працюють (напр. Sidemen, глибинка):
+    # не показуємо авто-рядок про таксі-додаток (агент пояснює транспорт у getting_around).
+    _ride = day.get("ride_app", True)
+    _ride_off = (_ride is False) or (isinstance(_ride, str)
+                                     and _ride.strip().lower() in ("false", "no", "none", "0", "off"))
+    _taxi = "" if _ride_off else (
+        taxi_line(_cc, lang) or (("\U0001f695 " + day.get("taxi")) if day.get("taxi") else ""))
     _ga = day.get("getting_around")
     _ga_items = ([_taxi] if _taxi else []) + ([_ga] if isinstance(_ga, str) and _ga else (list(_ga) if _ga else []))
     around = info_box(t["around"], _ga_items, lang)
@@ -561,6 +629,8 @@ def build_html(day):
     good_to_know = (_aslist(day.get("culture")) + _aslist(day.get("weather_plan"))
                     + _aslist(day.get("tips")))
     know = info_box(t["tips"], good_to_know, lang, "tips")
+    # «Де зупинитись» — рекомендоване житло (окремий блок, НЕ зупинка дня).
+    stay = stay_box(day.get("stay"), day.get("city", ""), lang)
     # «Альтернативні варіанти» (блок унизу) будуємо ЛИШЕ з реального вмісту:
     #  • тури/виїзди за місто з лінком (поле `daytrips`);
     #  • заміна на випадок «нема квитків» для зупинок із book_ahead (поле `alt_if_soldout`).
@@ -597,7 +667,7 @@ def build_html(day):
 <div class="hero"><div class="city">{esc(day.get('city',''))}</div>
 <div class="day">{esc(day.get('day_label',''))} · {esc(day.get('day_title',''))}</div>
 {sum_html}{pace}</div>
-{alert}{around}{budget}{know}
+{alert}{stay}{around}{budget}{know}
 <div class="list">{blocks}</div>
 {trips}
 <div class="foot">{foot}</div></body></html>"""
