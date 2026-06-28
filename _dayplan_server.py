@@ -55,7 +55,7 @@ def _env(keys):
     return vals
 
 
-ENV = _env(["GOOGLE_PLACES_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_HOME_CHANNEL"])
+ENV = _env(["GOOGLE_PLACES_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_HOME_CHANNEL", "VIATOR_PID"])
 KEY = ENV["GOOGLE_PLACES_API_KEY"]
 PRICE = {"PRICE_LEVEL_INEXPENSIVE": "€", "PRICE_LEVEL_MODERATE": "€€",
          "PRICE_LEVEL_EXPENSIVE": "€€€", "PRICE_LEVEL_VERY_EXPENSIVE": "€€€€"}
@@ -490,7 +490,7 @@ ALT_FALLBACK = {
 def _viator_search(name):
     """Пошукове посилання Viator (фолбек-альтернатива). З affiliate-трекінгом, якщо заданий VIATOR_PID."""
     q = urllib.parse.quote(name or "")
-    pid = os.environ.get("VIATOR_PID", "").strip()
+    pid = (ENV.get("VIATOR_PID") or os.environ.get("VIATOR_PID", "")).strip()
     track = ("&pid=%s&mcid=42383&medium=link" % urllib.parse.quote(pid)) if pid else ""
     return "https://www.viator.com/searchResults/all?text=" + q + track
 
